@@ -162,7 +162,7 @@ export default function Home() {
               <Github className="w-4 h-4" /> GitHub
             </a>
             <a
-              href="https://linkedin.com/"
+              href="https://www.linkedin.com/in/ikrame-8429bb1a8/"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800"
@@ -195,7 +195,7 @@ export default function Home() {
           </div>
 
           <p className="max-w-3xl text-slate-300/90">
-            Outside of work, I’m into science & art, I play piano, and yes—I enjoy video games.
+            Outside of work, I’m into science & art, & I play piano.
           </p>
         </div>
       </Section>
@@ -316,7 +316,7 @@ export default function Home() {
               <Github className="w-4 h-4" /> GitHub
             </a>
             <a
-              href="https://linkedin.com/"
+              href="https://www.linkedin.com/in/ikrame-8429bb1a8/"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
