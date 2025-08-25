@@ -251,28 +251,28 @@ export default function Home() {
             href="https://github.com/MysticKrameNine/Quantum_Intrusion_Detection"
           />
           <Card
+            title="TrustShare"
+            desc="Lightweight CRUD app demonstrating server-rendered flows and forms."
+            tags={["PHP", "MySQL"]}
+            href="https://github.com/MysticKrameNine/TrustShare"
+          />
+          <Card
+            title="JarGraphAnalyzer"
+            desc="Low-level data structures / algorithms with emphasis on correctness."
+            tags={["C", "Algorithms"]}
+            href="https://github.com/MysticKrameNine/JarGraphAnalyzer"
+          />
+          <Card
+            title="CalculatorForSonarQubeAnanalysis"
+            desc="Tiny front-end pieces exploring layout & typography."
+            tags={["HTML", "CSS"]}
+            href="https://github.com/MysticKrameNine/CalculatorForSonarQubeAnanalysis"
+          />
+          <Card
             title="ATM Machine"
             desc="Classic Java OOP exercise—PIN auth, balance ops, receipts."
             tags={["Java", "OOP"]}
             href="https://github.com/MysticKrameNine/ATM-Machine"
-          />
-          <Card
-            title="CRUD (PHP)"
-            desc="Lightweight CRUD app demonstrating server-rendered flows and forms."
-            tags={["PHP", "MySQL"]}
-            href="https://github.com/MysticKrameNine/CRUD-PHP"
-          />
-          <Card
-            title="C Programming Project"
-            desc="Low-level data structures / algorithms with emphasis on correctness."
-            tags={["C", "Algorithms"]}
-            href="https://github.com/MysticKrameNine/C-Programming-Project"
-          />
-          <Card
-            title="HTML/CSS Little Project"
-            desc="Tiny front-end pieces exploring layout & typography."
-            tags={["HTML", "CSS"]}
-            href="https://github.com/MysticKrameNine/html-css-little-project"
           />
           <Card
             title="exb1610local (fork)"
