@@ -14,6 +14,11 @@ const SPRING   = 0.28;       // how strongly links follow each other
 const DAMP     = 0.85;       // damping = stability
 const FIXED_ANGLE_DEG = -22; // 👈 constant tilt (incliné)
 
+// ---- tip geometry (relative to wand container center, before rotation)
+// Shaft is 28px tall; star sits ~3px above; star size ~14px.
+// Center-of-star ≈ - (28/2) - 3 - (14/2) = -24px above container center.
+const TIP_OFFSET_LOCAL = { x: 0, y: -24 }; // adjust by ±2px if you want it tighter
+
 export default function MagicCursor() {
   // mouse + lightly-smoothed position (no wobble)
   const [mouse, setMouse] = useState({ x: -100, y: -100 });
@@ -37,11 +42,30 @@ export default function MagicCursor() {
     []
   );
 
-  // capture mouse, spawn particles only on movement
+  // fixed offset so the “handle” sits right under the cursor
+  const OFFSET_X = -4;
+  const OFFSET_Y = 4;
+
+  // compute the world-space position of the **wand tip** (star center)
+  const angleRad = (FIXED_ANGLE_DEG * Math.PI) / 180;
+  const tipDx = TIP_OFFSET_LOCAL.x * Math.cos(angleRad) - TIP_OFFSET_LOCAL.y * Math.sin(angleRad);
+  const tipDy = TIP_OFFSET_LOCAL.x * Math.sin(angleRad) + TIP_OFFSET_LOCAL.y * Math.cos(angleRad);
+
+  // helper: given a base (mouse) point, return tip coordinates
+  const tipAt = (x: number, y: number) => ({
+    x: x + OFFSET_X + tipDx,
+    y: y + OFFSET_Y + tipDy,
+  });
+
+  // capture mouse, spawn particles at **wand tip** only on movement
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       setMouse({ x: e.clientX, y: e.clientY });
-      spawn(e.clientX, e.clientY, 3); // fewer particles per move
+
+      // Emit from the TOP of the wand (glowing star), not the cursor tail
+      const tip = tipAt(e.clientX, e.clientY);
+      spawn(tip.x, tip.y, 3); // fewer particles per move
+
       lastMoveAt.current = Date.now();
       if (!running.current && !reduced) {
         running.current = true;
@@ -134,10 +158,6 @@ export default function MagicCursor() {
     }
   }
 
-  // fixed offset so the “handle” sits right under the cursor
-  const OFFSET_X = -4;
-  const OFFSET_Y = -22;
-
   return (
     <>
       {/* FLEXIBLE RIBBON (soft, stable) */}
@@ -180,7 +200,7 @@ export default function MagicCursor() {
         style={{
           left: pos.x + OFFSET_X,
           top:  pos.y + OFFSET_Y,
-          transform: `translate(-50%, -50%) rotate(${FIXED_ANGLE_DEG}deg)`, // 👈 fixed angle
+          transform: `translate(-50%, -50%) rotate(${FIXED_ANGLE_DEG}deg)`,
           transformOrigin: "50% 50%",
         }}
       >

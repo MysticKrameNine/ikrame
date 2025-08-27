@@ -1,5 +1,5 @@
 "use client";
-
+import { Shield, Globe, Smartphone, ClipboardList, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Mail, Github, Linkedin } from "lucide-react";
 
@@ -23,6 +23,42 @@ function Section({
         <div className="mt-6">{children}</div>
       </div>
     </section>
+  );
+}
+
+function ServiceCard({
+  icon: Icon,
+  title,
+  desc,
+  points,
+  price,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+  points: string[];
+  price?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 p-6 transition hover:-translate-y-0.5 hover:border-slate-700 hover:shadow-lg">
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl border border-slate-700 p-2">
+          <Icon className="h-5 w-5 text-cyan-300" />
+        </div>
+        <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
+      </div>
+      <p className="mt-3 text-slate-300/90 text-sm">{desc}</p>
+      <ul className="mt-4 space-y-1.5 text-sm text-slate-300/90 list-disc pl-5">
+        {points.map((p) => (
+          <li key={p}>{p}</li>
+        ))}
+      </ul>
+      {price ? (
+        <div className="mt-4 inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300/90">
+          {price}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -125,7 +161,7 @@ export default function Home() {
               style={
                 {
                   ["--typew" as any]: `${headlineWidth}px`, // animate to exact pixel width
-                  ["--steps" as any]: HEADLINE_STEPS,
+                  ["--steps" as any]: 16,
                 } as React.CSSProperties
               }
             >
@@ -294,6 +330,95 @@ export default function Home() {
         </div>
       </Section>
 
+      {/* ===== / services ===== */}
+      <Section id="services" title="services">
+        <p className="text-slate-300/90 max-w-3xl">
+          Advisory and delivery services focused on reliability, security, and measurable outcomes.
+        </p>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ServiceCard
+            icon={Globe}
+            title="Website Creation & Design"
+            desc="Design and build performant, accessible websites that reflect your brand and convert."
+            points={[
+              "Next.js/React, SSR/SSG",
+              "Marketing sites, portfolios, lightweight apps",
+              "Analytics instrumentation and SEO foundations",
+            ]}
+            price="From €800 (typical €800–€2,500)"
+          />
+          <ServiceCard
+            icon={Smartphone}
+            title="Mobile App Security"
+            desc="End-to-end hardening for Android applications and delivery pipelines."
+            points={[
+              "ProGuard/DexGuard guidance and rules",
+              "Secure storage; TLS hardening & certificate pinning",
+              "Play Integrity enforcement and tamper detection",
+            ]}
+            price="From €900 (security review)"
+          />
+          <ServiceCard
+            icon={Shield}
+            title="Risk Analysis (EBIOS)"
+            desc="Decision-grade risk assessments aligned with EBIOS, with a clear treatment roadmap."
+            points={[
+              "Asset inventory and threat modeling",
+              "Impact/likelihood scoring and risk register",
+              "Mitigation plan, KPIs, and governance artefacts",
+            ]}
+            price="From €1,200 (starter workshop)"
+          />
+          <ServiceCard
+            icon={ClipboardList}
+            title="Security Reviews"
+            desc="Independent review of code, infrastructure, and processes with prioritized remediation."
+            points={[
+              "AuthN/AuthZ, secrets handling, logging/monitoring",
+              "OWASP Top 10 spot-checks",
+              "Actionable findings ordered by risk",
+            ]}
+            price="From €700 (mini-audit)"
+          />
+          <ServiceCard
+            icon={Wrench}
+            title="Custom Web Applications"
+            desc="Bespoke internal tools and dashboards that streamline operations and reduce manual effort."
+            points={[
+              "CRUD workflows, forms, and admin panels",
+              "API integration (REST/GraphQL)",
+              "CI/CD enablement and basic observability",
+            ]}
+            price="From €1,500 (typical €1,500–€6,000)"
+          />
+
+          <div className="rounded-2xl border border-dashed border-slate-800 p-6 flex flex-col items-start justify-center">
+            <h3 className="text-lg font-semibold text-slate-100">More services coming soon…</h3>
+            <p className="mt-2 text-slate-300/90 text-sm">
+              Have something specific in mind? I can scope it quickly.
+            </p>
+            <a
+              href="mailto:ikramebakkari@protonmail.com?subject=Project%20inquiry"
+              className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
+            >
+              <Mail className="w-4 h-4" /> Request a quote
+            </a>
+            <p className="mt-3 text-xs text-slate-400">
+              Prices are indicative and exclude VAT. Final quotes depend on scope & timeline.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap gap-2">
+          {["Next.js","React","TypeScript","Node.js","Java","C#","Azure","EBIOS","OWASP"].map((t) => (
+            <span key={t} className="text-xs text-slate-400 rounded-full border border-slate-700 px-2 py-1">
+              {t}
+            </span>
+          ))}
+        </div>
+      </Section>
+
       {/* ===== / contact ===== */}
       <Section id="contact" title="contact">
         <div className="text-center">
@@ -338,7 +463,6 @@ export default function Home() {
 
       {/* Local CSS for shimmer + exact-width typing + subtitle fade */}
       <style jsx global>{`
-        /* Shimmering gradient on the name */
         .shimmer-text {
           background: linear-gradient(90deg, #34d399, #22d3ee, #60a5fa, #22d3ee, #34d399);
           background-size: 200% 100%;
@@ -353,30 +477,25 @@ export default function Home() {
           100% { background-position: 0% 50%; }
         }
 
-        /* Exact pixel typing to avoid caret drift with proportional fonts */
         .typing {
           width: 0;
           white-space: nowrap;
           overflow: hidden;
           border-right: 3px solid rgba(165, 243, 252, 0.9);
           animation:
-            typingPx 2.4s steps(16, end) forwards, /* 16 visible chars: hi, ikrame here. */
+            typingPx 2.4s steps(16, end) forwards,
             caret 1s steps(1) infinite;
         }
         @keyframes typingPx {
           from { width: 0; }
-          to   { width: var(--typew, 0px); } /* measured pixels */
+          to   { width: var(--typew, 0px); }
         }
         @keyframes caret {
           0%, 49%  { border-color: rgba(165, 243, 252, 0.9); }
           50%,100% { border-color: transparent; }
         }
 
-        /* Subtitle fade-in AFTER the typing finishes */
-        .headline-sub {
-          animation: fadeIn 600ms ease forwards;
-          animation-delay: 2.45s;
-        }
+        .headline-sub { animation: fadeIn 600ms ease forwards; animation-delay: 2.45s; }
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(4px); }
           to   { opacity: 1; transform: translateY(0); }
