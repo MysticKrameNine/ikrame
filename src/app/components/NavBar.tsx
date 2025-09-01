@@ -12,6 +12,7 @@ export default function NavBar() {
           <a href="#about" className="hover:text-slate-100">About</a>
           <a href="#experience" className="hover:text-slate-100">Experience</a>
           <a href="#projects" className="hover:text-slate-100">Projects</a>
+          <a href="#services" className="hover:text-slate-100">Services</a>
           <a href="#contact" className="hover:text-slate-100">Contact</a>
         </nav>
       </div>
