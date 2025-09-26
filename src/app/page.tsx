@@ -455,7 +455,7 @@ export default function Home() {
       {/* ===== Footer ===== */}
       <footer className="border-t border-slate-800">
         <div className="mx-auto max-w-6xl px-5 py-8 text-center text-sm text-slate-400">
-          Built and designed by <span className="text-slate-200">Ikrame B.</span>.
+          Built and designed by <span className="text-slate-200">Ikrame B</span>.
           <span className="mx-2">•</span>
           All rights reserved. © {new Date().getFullYear()}
         </div>
