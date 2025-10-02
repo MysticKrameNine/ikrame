@@ -231,7 +231,7 @@ export default function Home() {
           </div>
 
           <p className="max-w-3xl text-slate-300/90">
-            Outside of work, I’m into science & art, & I play piano.
+            Outside of work, I’m into science, art, & I play piano.
           </p>
         </div>
       </Section>
