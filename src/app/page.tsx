@@ -252,8 +252,8 @@ export default function Home() {
         />
 
         <Experience
-          company="Guardsquare @Proguard- Belgium"
-          role="Software Engineer- Mobile App Protection (Obfuscation & Bytecode)"
+          company="Guardsquare - Belgium"
+          role="@ProGuard Software Engineer - Mobile App Protection (Obfuscation & Bytecode)"
           period="Jun 2023 – Sep 2023"
           bullets={[
             "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
