@@ -239,7 +239,7 @@ export default function Home() {
       {/* ===== / experience ===== */}
       <Section id="experience" title="experience">
         <Experience
-          company="Microsoft — Paris"
+          company="Microsoft - Paris"
           role="Infrastructure Operations (Networking & Azure Cloud)"
           period="Jan 2025 – Jul 2025"
           highlight="Azure data-center operations with a focus on availability, safety and secure lifecycle."
@@ -252,8 +252,8 @@ export default function Home() {
         />
 
         <Experience
-          company="Guardsquare — Belgium"
-          role="Software Engineer — Obfuscation & Bytecode"
+          company="Guardsquare @Proguard- Belgium"
+          role="Software Engineer- Mobile App Protection (Obfuscation & Bytecode)"
           period="Jun 2023 – Sep 2023"
           bullets={[
             "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
@@ -262,8 +262,8 @@ export default function Home() {
         />
 
         <Experience
-          company="Alstef Group — France"
-          role="Apprentice Software & Cybersecurity Engineer"
+          company="Alstef Group                                                                                                  France"
+          role="Software & Cybersecurity Engineer"
           period="Sep 2021 – Sep 2024"
           bullets={[
             "Crisis simulations with the French Cyber Command (COMCYBER).",
