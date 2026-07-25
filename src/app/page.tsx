@@ -231,7 +231,7 @@ export default function Home() {
           </div>
 
           <p className="max-w-3xl text-slate-300/90">
-            Outside of work, I’m into science, art, & I play piano.
+            Outside of work, I’m into  art, science, & I play piano.
           </p>
         </div>
       </Section>
@@ -245,8 +245,7 @@ export default function Home() {
           highlight="Azure data-center operations with a focus on availability, safety and secure lifecycle."
           bullets={[
             "Built an internal training/testing platform controlling data-hall access by skill level; increased completion via automated notifications.",
-            "Full infra ops: rack & stack, server integration, MAC/IP control, Azure connectivity, ticketing.",
-            "Low-level troubleshooting: DIMMs, CPUs, PSUs, SSDs, NICs, FPGAs; optical checks (LC, PSM4, AOC).",
+            "Full infra data centers ops: server integration, rack & stack, Network control, Azure connectivity.",
             "Secure decommissioning per NIST 800-88; EHS-compliant operations.",
           ]}
         />
