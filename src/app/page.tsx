@@ -241,18 +241,18 @@ export default function Home() {
 
 
         <Experience
-          company="Healthcare Technology — France"
-          role="Technical Engineer — Critical Systems"
+          company="Healthcare Technology - France"
+          role="Senior Infrastructure Engineer"
           period="Mar 2026 – Present"
-          highlight="Working with senior engineers on high-availability software systems supporting hospitals across France."
+          highlight="Working with high-availability software systems supporting hospitals across France."
           bullets={[
-            "Production troubleshooting across Linux, Oracle, Java and distributed systems.",
+            "Production troubleshooting across Linux, RedHat 8, Oracle, Java and distributed systems.",
             "Root-cause analysis across infrastructure, database and application layers.",
           ]}
         />
 
         <Experience
-          company="Equinix — Frankfurt, Germany"
+          company="Equinix - Frankfurt, Germany"
           role="Infrastructure Operations"
           period="Oct 2025 – Feb 2026"
           highlight="Mission-critical infrastructure in an international, high-availability environment."
