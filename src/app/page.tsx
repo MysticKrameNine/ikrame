@@ -122,72 +122,12 @@ function Experience({
   );
 }
 
-const experiences = [
-  {
-    company: "Healthcare Tech",
-    role: "Technical Engineer — Critical Systems",
-    period: "Mar 2026 — Present",
-    highlight:
-      "Working with senior engineers on high-availability software systems supporting hospitals across France.",
-    bullets: [
-      "Production troubleshooting across Linux, Oracle, Java and distributed systems.",
-      "Root-cause analysis across infrastructure, database and application layers.",
-    ],
-  },
-  {
-    company: "Equinix",
-    role: "Infrastructure Operations",
-    period: "Oct 2025 — Feb 2026",
-    highlight:
-      "Mission-critical infrastructure in an international, high-availability environment.",
-    bullets: [
-      "Enterprise data-center infrastructure, networking and incident troubleshooting.",
-    ],
-  },
-  {
-    company: "Microsoft",
-    role: "Infrastructure Operations (Networking & Azure Cloud)",
-    period: "Jan 2025 — Jul 2025",
-    highlight:
-      "Azure data-center operations with a focus on availability, safety and secure lifecycle.",
-    bullets: [
-      "Built an internal training/testing platform controlling data-hall access by skill level; increased completion via automated notifications.",
-      "Full infra data centers ops: server integration, Network control, Azure connectivity.",
-      "Secure decommissioning per NIST 800-88; EHS-compliant operations.",
-      "Troubleshot infrastructure incidents in a high-availability environment under strict operational and security procedures.",
-    ],
-  },
-  {
-    company: "Guardsquare",
-    role: "@ProGuard Software Engineer — Mobile App Protection",
-    period: "Jun 2023 — Sep 2023",
-    highlight: "",
-    bullets: [
-      "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
-      "Gradle plugin development; designed unit & integration tests (JUnit).",
-    ],
-  },
-  {
-    company: "Alstef Group",
-    role: "Software & Cybersecurity Engineer",
-    period: "Sep 2021 — Sep 2024",
-    highlight: "",
-    bullets: [
-      "Crisis simulations with the French Cyber Command (COMCYBER).",
-      "ELK stack for log collection/analysis; monitoring prototypes (Grafana/Prometheus).",
-      "Identity & access: Keycloak + Spring Security, OAuth2/JWT, RBAC, AOP-based audit logging; EBIOS risk analysis.",
-    ],
-  },
-];
-
 /* ---------- Main page ---------- */
 export default function Home() {
   // EXACT typewriter alignment: measure the pixel width of the headline once rendered
-  const [activeExperience, setActiveExperience] = useState(0);
   const headlineRef = useRef<HTMLSpanElement | null>(null);
   const [headlineWidth, setHeadlineWidth] = useState<number>(0);
   const HEADLINE_STEPS = 16; // "hi, ikrame here." -> 16 visible characters
-  
 
   useEffect(() => {
     const el = headlineRef.current;
@@ -297,7 +237,121 @@ export default function Home() {
       </Section>
 
       {/* ===== / experience ===== */}
-      
+      <Section id="experience" title="experience">
+
+
+        <Experience
+          company="Healthcare Technology — France"
+          role="Technical Engineer — Critical Systems"
+          period="Mar 2026 – Present"
+          highlight="Working with senior engineers on high-availability software systems supporting hospitals across France."
+          bullets={[
+            "Production troubleshooting across Linux, Oracle, Java and distributed systems.",
+            "Root-cause analysis across infrastructure, database and application layers.",
+          ]}
+        />
+
+        <Experience
+          company="Equinix — Frankfurt, Germany"
+          role="Infrastructure Operations"
+          period="Oct 2025 – Feb 2026"
+          highlight="Mission-critical infrastructure in an international, high-availability environment."
+          bullets={[
+            "Enterprise data-center infrastructure, networking and incident troubleshooting.",
+          ]}
+        />
+        <Experience
+          company="Microsoft - Paris"
+          role="Infrastructure Operations (Networking & Azure Cloud)"
+          period="Jan 2025 – Jul 2025"
+          highlight="Azure data-center operations with a focus on availability, safety and secure lifecycle."
+          bullets={[
+            "Built an internal training/testing platform controlling data-hall access by skill level; increased completion via automated notifications.",
+            "Full infra data centers ops: server integration, Network control, Azure connectivity.",
+            "Secure decommissioning per NIST 800-88; EHS-compliant operations.",
+            "Troubleshot infrastructure incidents in a high-availability environment under strict operational and security procedures."
+          ]}
+        />
+
+        <Experience
+          company="Guardsquare - Belgium"
+          role="@ProGuard Software Engineer - Mobile App Protection (Obfuscation & Bytecode)"
+          period="Jun 2023 – Sep 2023"
+          bullets={[
+            "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
+            "Gradle plugin development; designed unit & integration tests (JUnit).",
+          ]}
+        />
+
+        <Experience
+          company="Alstef Group                                                                                                  France"
+          role="Software & Cybersecurity Engineer"
+          period="Sep 2021 – Sep 2024"
+          bullets={[
+            "Crisis simulations with the French Cyber Command (COMCYBER).",
+            "ELK stack for log collection/analysis; monitoring prototypes (Grafana/Prometheus).",
+            "Identity & access: Keycloak + Spring Security, OAuth2/JWT, RBAC, AOP-based audit logging; EBIOS risk analysis.",
+          ]}
+        />
+      </Section>
+
+      {/* ===== / pet projects ===== */}
+      <Section id="projects" title="pet projects">
+        <div className="mt-2 text-slate-400 text-sm">
+          Hand-picked work. The rest lives on my GitHub.
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card
+            title="Quantum Intrusion Detection"
+            desc="Experiments toward anomaly detection using quantum-inspired approaches."
+            tags={["Python", "Jupyter", "Security"]}
+            href="https://github.com/MysticKrameNine/Quantum_Intrusion_Detection"
+          />
+          <Card
+            title="TrustShare"
+            desc="Lightweight CRUD app demonstrating server-rendered flows and forms."
+            tags={["PHP", "MySQL"]}
+            href="https://github.com/MysticKrameNine/TrustShare"
+          />
+          <Card
+            title="JarGraphAnalyzer"
+            desc="Low-level data structures / algorithms with emphasis on correctness."
+            tags={["C", "Algorithms"]}
+            href="https://github.com/MysticKrameNine/JarGraphAnalyzer"
+          />
+          <Card
+            title="CalculatorForSonarQubeAnanalysis"
+            desc="Tiny front-end pieces exploring layout & typography."
+            tags={["HTML", "CSS"]}
+            href="https://github.com/MysticKrameNine/CalculatorForSonarQubeAnanalysis"
+          />
+          <Card
+            title="ATM Machine"
+            desc="Classic Java OOP exercise—PIN auth, balance ops, receipts."
+            tags={["Java", "OOP"]}
+            href="https://github.com/MysticKrameNine/ATM-Machine"
+          />
+          <Card
+            title="exb1610local (fork)"
+            desc="Academic Java project fork—demonstrates build & contribution workflow."
+            tags={["Java", "Gradle"]}
+            href="https://github.com/MysticKrameNine/exb1610local"
+          />
+        </div>
+
+        <div className="mt-8">
+          <a
+            href="https://github.com/MysticKrameNine"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800"
+          >
+            View all on GitHub →
+          </a>
+        </div>
+      </Section>
+
       {/* ===== / services ===== */}
       <Section id="services" title="services">
         <p className="text-slate-300/90 max-w-3xl">
