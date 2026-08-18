@@ -273,16 +273,15 @@ export default function Home() {
           ]}
         />
 
-        <Experience
-          company="Guardsquare - Belgium"
-          role="@ProGuard Software Engineer - Mobile App Protection (Obfuscation & Bytecode)"
+          <Experience
+          company="Android @Guardsquare — Belgium"
+          role="Android /ProGuard Software Engineer — Mobile App Protection"
           period="Jun 2023 – Sep 2023"
           bullets={[
             "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
             "Gradle plugin development; designed unit & integration tests (JUnit).",
           ]}
         />
-
         <Experience
           company="Alstef Group                                                                                                  France"
           role="Software & Cybersecurity Engineer"
