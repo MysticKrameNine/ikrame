@@ -274,7 +274,7 @@ export default function Home() {
         />
 
           <Experience
-          company="Android @Guardsquare — Belgium"
+          company="Android|Guardsquare — Belgium"
           role="Android /ProGuard Software Engineer — Mobile App Protection"
           period="Jun 2023 – Sep 2023"
           bullets={[
