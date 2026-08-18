@@ -274,8 +274,8 @@ export default function Home() {
         />
 
           <Experience
-          company="Android|Guardsquare - Belgium"
-          role="Android /ProGuard Software Engineer - Mobile App Protection"
+          company="Android | Guardsquare - Belgium"
+          role="ProGuard Software Engineer - Mobile App Protection"
           period="Jun 2023 – Sep 2023"
           bullets={[
             "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
