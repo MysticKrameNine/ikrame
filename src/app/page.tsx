@@ -183,7 +183,7 @@ export default function Home() {
 
           <div className="mt-10 flex justify-center gap-3">
             <a
-              href="mailto:ikramebakkari@protonmail.com"
+              href="mailto:ikrame.spaces@gmail.com"
               className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-300"
             >
               <Mail className="w-4 h-4" />
@@ -420,7 +420,7 @@ export default function Home() {
               Have something specific in mind? I can scope it quickly.
             </p>
             <a
-              href="mailto:ikramebakkari@protonmail.com?subject=Project%20inquiry"
+              href="mailto:ikrame.spaces@gmail.com?subject=Project%20inquiry"
               className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
             >
               <Mail className="w-4 h-4" /> Request a quote
@@ -448,7 +448,7 @@ export default function Home() {
           </p>
           <div className="mt-6 flex justify-center gap-4">
             <a
-              href="mailto:ikramebakkari@protonmail.com"
+              href="mailto:ikrame.spaces@gmail.com"
               className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
             >
               <Mail className="w-4 h-4" /> Email
