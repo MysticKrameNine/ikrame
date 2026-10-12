@@ -9,6 +9,16 @@ import UniverseBackground from "./components/UniverseBackground";
 export const metadata: Metadata = {
   title: "Ikrame",
   description: "Software engineer with cloud, security, and networking roots.",
+
+   robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
