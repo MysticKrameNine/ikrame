@@ -178,7 +178,7 @@ export default function Home() {
 
           {/* Supporting line (kept for context/professional tone) */}
           <p className="mt-3 text-slate-300/85 text-lg md:text-xl">
-            Based in <b>Paris</b>, I’m fascinated by tech and clean user experiences.
+            Fascinated by tech and clean user experiences.
           </p>
 
           <div className="mt-10 flex justify-center gap-3">
