@@ -158,8 +158,17 @@ export default function MagicCursor() {
     }
   }
 
+  const [fine, setFine] = useState(false);
+  useEffect(() => {
+    const ok = window.matchMedia("(pointer: fine)").matches;
+    setFine(ok);
+    if (ok) document.documentElement.classList.add("has-wand");
+    return () => document.documentElement.classList.remove("has-wand");
+  }, []);
+  if (!fine) return null;
+
   return (
-    <>
+    <div className="wand-layer" aria-hidden="true">
       {/* FLEXIBLE RIBBON (soft, stable) */}
       {chain.current.map((p, i) => {
         const t = 1 - i / CHAIN_LEN;
@@ -174,8 +183,8 @@ export default function MagicCursor() {
               transform: "translate(-50%, -50%)",
               background: `radial-gradient(circle, hsl(${hue} 90% 70%) 0%, hsla(${hue} 90% 60% / .8) 40%, transparent 70%)`,
               filter: "blur(0.5px)",
+              position: "fixed", zIndex: 9997, borderRadius: "50%", pointerEvents: "none",
             }}
-            className="fixed z-[9997] rounded-full pointer-events-none"
           />
         );
       })}
@@ -189,15 +198,15 @@ export default function MagicCursor() {
             transform: `translate(-50%, -50%) rotate(${p.spin}deg)`,
             background: "linear-gradient(45deg, #ffd36a, #ffb84a)",
             boxShadow: "0 0 10px rgba(255,190,60,.85), 0 0 16px rgba(255,170,40,.55)",
+            position: "fixed", zIndex: 9998, pointerEvents: "none",
           }}
-          className="fixed z-[9998] pointer-events-none"
         />
       ))}
 
       {/* WAND — fixed tilt (incliné), no dancing */}
       <div
-        className="fixed z-[10000] pointer-events-none"
         style={{
+          position: "fixed", zIndex: 10000, pointerEvents: "none",
           left: pos.x + OFFSET_X,
           top:  pos.y + OFFSET_Y,
           transform: `translate(-50%, -50%) rotate(${FIXED_ANGLE_DEG}deg)`,
@@ -205,30 +214,26 @@ export default function MagicCursor() {
         }}
       >
         {/* shaft */}
-        <div className="relative" style={{ width: 4, height: 28 }}>
-          <div className="absolute inset-0 rounded-full"
-               style={{ background: "linear-gradient(180deg, #0b0b0b 0%, #2d2d2d 60%, #0b0b0b 100%)", boxShadow: "0 2px 6px rgba(0,0,0,.35)" }} />
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[6px] h-[6px] rounded-[2px]"
-               style={{ background: "linear-gradient(180deg,#caa660,#a27828)", boxShadow:"0 0 6px rgba(202,166,96,.45)" }} />
+        <div style={{ position: "relative", width: 4, height: 28 }}>
+          <div style={{ position: "absolute", inset: 0, borderRadius: 999, background: "linear-gradient(180deg, #0b0b0b 0%, #2d2d2d 60%, #0b0b0b 100%)", boxShadow: "0 2px 6px rgba(0,0,0,.35)" }} />
+          <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 6, height: 6, borderRadius: 2, background: "linear-gradient(180deg,#caa660,#a27828)", boxShadow:"0 0 6px rgba(202,166,96,.45)" }} />
         </div>
 
         {/* glowing star tip */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+        <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)" }}>
           <div
-            className="relative"
             style={{
-              width: 14, height: 14,
+              position: "relative", width: 14, height: 14,
               clipPath: "polygon(50% 0%, 63% 38%, 100% 50%, 63% 62%, 50% 100%, 37% 62%, 0% 50%, 37% 38%)",
               background: "radial-gradient(circle at 50% 40%, #ffe6a0 0%, #ffd36a 55%, #ffb84a 100%)",
               boxShadow: "0 0 14px 6px rgba(255,210,110,.65)",
               animation: "spin 3.6s linear infinite",
             }}
           />
-          <div className="absolute -inset-2 rounded-full animate-ping" style={{ border: "1px solid rgba(255,220,140,.5)" }} />
-          <div className="absolute inset-0 rounded-full"
-               style={{ background: "radial-gradient(circle, rgba(255,250,220,.9), rgba(255,220,140,.55) 60%, transparent 70%)", filter: "blur(1px)", animation: "pulse 2s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", inset: -8, borderRadius: "50%", border: "1px solid rgba(255,220,140,.5)", animation: "ping 1s cubic-bezier(0,0,.2,1) infinite" }} />
+          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,250,220,.9), rgba(255,220,140,.55) 60%, transparent 70%)", filter: "blur(1px)", animation: "pulse 2s ease-in-out infinite" }} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
