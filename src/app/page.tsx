@@ -1,527 +1,334 @@
 "use client";
-import { Shield, Globe, Smartphone, ClipboardList, Wrench } from "lucide-react";
+
 import { useEffect, useRef, useState } from "react";
-import { Mail, Github, Linkedin } from "lucide-react";
+import CareerGlobe from "./components/CareerGlobe";
+import ArtGallery from "./components/ArtGallery";
+import OrbitSystem from "./components/OrbitSystem";
+import ProjectsFloat from "./components/ProjectsFloat";
+import { drawGirl } from "./components/draw";
+import {
+  Mail, Github, Linkedin, Compass, Gamepad, Globe, Phone, Shield, Clipboard, Wrench,
+} from "./components/Icons";
+import {
+  STATS, HIGHLIGHTS, TECH, PROJECTS, BOOK, SERVICES, SERVICE_TAGS, EMAIL, GITHUB, LINKEDIN,
+} from "./data/career";
 
-/* ---------- Shared blocks ---------- */
-function Section({
-  id,
-  title,
-  children,
-}: {
-  id: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} className="scroll-mt-24 border-t border-slate-800">
-      <div className="mx-auto max-w-6xl px-5 py-16">
-        <h2 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
-          <span className="text-cyan-300/90 mr-2">/</span>
-          {title}
-        </h2>
-        <div className="mt-6">{children}</div>
-      </div>
-    </section>
-  );
-}
+/* ---------- building blocks ---------- */
 
-function ServiceCard({
-  icon: Icon,
-  title,
-  desc,
-  points,
-  price,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  desc: string;
-  points: string[];
-  price?: string;
-}) {
+function SectionTitle({ children, n, label }: { children: React.ReactNode; n?: string; label?: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 p-6 transition hover:-translate-y-0.5 hover:border-slate-700 hover:shadow-lg">
-      <div className="flex items-center gap-3">
-        <div className="rounded-xl border border-slate-700 p-2">
-          <Icon className="h-5 w-5 text-cyan-300" />
-        </div>
-        <h3 className="text-lg font-semibold text-slate-100">{title}</h3>
-      </div>
-      <p className="mt-3 text-slate-300/90 text-sm">{desc}</p>
-      <ul className="mt-4 space-y-1.5 text-sm text-slate-300/90 list-disc pl-5">
-        {points.map((p) => (
-          <li key={p}>{p}</li>
-        ))}
-      </ul>
-      {price ? (
-        <div className="mt-4 inline-flex items-center rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300/90">
-          {price}
+    <>
+      {n ? (
+        <div className="section-label mono reveal">
+          <span>({n})</span>
+          <span className="section-label-line" />
+          <span>{label}</span>
         </div>
       ) : null}
-    </div>
+      <h2 className="section-title reveal mask">
+        <span className="mask-inner">{children}</span>
+      </h2>
+    </>
   );
 }
 
-function Card({
-  title,
-  desc,
-  tags,
-  href,
-}: {
-  title: string;
-  desc: string;
-  tags: string[];
-  href: string;
-}) {
-  return (
-    <a
-      className="block rounded-2xl border border-slate-800 p-6 transition hover:-translate-y-0.5 hover:border-slate-700 hover:shadow-lg"
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-    >
-      <h3 className="font-medium text-slate-100">{title}</h3>
-      <p className="mt-2 text-sm text-slate-400">{desc}</p>
-      <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-400">
-        {tags.map((t) => (
-          <span key={t} className="rounded-full border border-slate-700 px-2 py-1">
-            {t}
-          </span>
-        ))}
-      </div>
-    </a>
-  );
-}
-
-function Experience({
-  company,
-  role,
-  period,
-  bullets,
-  highlight,
-}: {
-  company: string;
-  role: string;
-  period: string;
-  bullets: string[];
-  highlight?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-slate-800 p-6 mb-6">
-      <h3 className="text-xl font-semibold text-slate-100">
-        {role} <span className="text-cyan-300">@ {company}</span>
-      </h3>
-      <p className="text-sm text-slate-400 mt-1">{period}</p>
-      {highlight ? <p className="mt-3 text-slate-300/90">{highlight}</p> : null}
-      <ul className="mt-3 list-disc pl-5 text-sm text-slate-300/90 space-y-1.5">
-        {bullets.map((b) => (
-          <li key={b}>{b}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-/* ---------- Main page ---------- */
-export default function Home() {
-  // EXACT typewriter alignment: measure the pixel width of the headline once rendered
-  const headlineRef = useRef<HTMLSpanElement | null>(null);
-  const [headlineWidth, setHeadlineWidth] = useState<number>(0);
-  const HEADLINE_STEPS = 16; // "hi, ikrame here." -> 16 visible characters
-
+function TypeLine({ onDone }: { onDone?: () => void }) {
+  const text = "hi, ikrame here.";
+  const [n, setN] = useState(0);
   useEffect(() => {
-    const el = headlineRef.current;
-    if (!el) return;
-    const measure = () => setHeadlineWidth(el.scrollWidth);
-    measure();
-    window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setN(text.length);
+      onDone?.();
+      return;
+    }
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setN(i);
+      if (i >= text.length) {
+        window.clearInterval(id);
+        onDone?.();
+      }
+    }, 110);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // "ikrame" (chars 4–9) gets the shimmering gradient, as on the original site
+  const typed = text.slice(0, n);
+  return (
+    <>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">
+        {typed.slice(0, 4)}
+        <span className="shimmer-text">{typed.slice(4, 10)}</span>
+        {typed.slice(10)}
+      </span>
+      <span className="caret" aria-hidden="true" />
+    </>
+  );
+}
+
+/** The little cyclist riding across the game teaser. */
+function TeaserRider() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = ref.current;
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = 160 * dpr;
+    c.height = 110 * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let raf = 0, p = 0;
+    const loop = () => {
+      p += 0.12;
+      ctx.clearRect(0, 0, 160, 110);
+      ctx.strokeStyle = "rgba(103,232,249,0.4)";
+      ctx.setLineDash([8, 8]);
+      ctx.lineDashOffset = -p * 12;
+      ctx.beginPath();
+      ctx.moveTo(0, 100);
+      ctx.lineTo(160, 100);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      drawGirl(ctx, 80, 99, 17, { pedal: p, glow: true, bob: Math.sin(p) * 0.04 });
+      if (!reduced) raf = requestAnimationFrame(loop);
+    };
+    loop();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={ref} style={{ width: 160, height: 110 }} aria-hidden="true" />;
+}
+
+const SERVICE_ICONS = { globe: Globe, phone: Phone, shield: Shield, clipboard: Clipboard, wrench: Wrench } as const;
+
+/* ---------- page ---------- */
+
+export default function Home() {
+  const [typed, setTyped] = useState(false);
 
   return (
-    <div className="font-sans min-h-screen flex flex-col text-slate-200">
-
+    <main className="page">
       {/* ===== HERO ===== */}
-      <section id="home" className="flex items-center justify-center">
-        <div className="mx-auto max-w-4xl px-5 py-28 text-center">
-
-          {/* Top creative GIF — put your file at /public/hero-animation.gif */}
-          <div className="mb-8 flex justify-center">
-            <img
-              src="/hero-animation5.gif"
-              alt="Creative header animation"
-              className="h-32 w-auto rounded-lg shadow-lg opacity-95"
-            />
+      <section id="home" className="hero">
+        <div className="hero-moon">
+          <OrbitSystem />
+        </div>
+        <div className="hero-copy">
+          <div className="hero-gif">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/hero-animation5.gif" alt="Creative header animation" />
           </div>
-
-          {/* Typing headline with shimmering name */}
-          <div className="mx-auto w-fit">
-            <h1
-              className="typing text-[44px] md:text-[72px] leading-[1.05] font-semibold tracking-tight text-slate-100"
-              style={
-                {
-                  ["--typew" as any]: `${headlineWidth}px`, // animate to exact pixel width
-                  ["--steps" as any]: 16,
-                } as React.CSSProperties
-              }
-            >
-              <span ref={headlineRef} className="inline-block">
-                hi, <span className="shimmer-text">ikrame</span> here.
-              </span>
-            </h1>
-          </div>
-
-          {/* Subtitle: static, fades in after typing */}
-          <p className="headline-sub mt-5 text-slate-300/90 text-2xl md:text-[28px] font-medium opacity-0">
-            I create stuff sometimes.
-          </p>
-
-          {/* Supporting line (kept for context/professional tone) */}
-          <p className="mt-3 text-slate-300/85 text-lg md:text-xl">
+          <h1 className="hero-title">
+            <TypeLine onDone={() => setTyped(true)} />
+          </h1>
+          <p className={`hero-sub${typed ? " is-in" : ""}`}>I create stuff <em>sometimes.</em></p>
+          <p className={`hero-text${typed ? " is-in" : ""}`}>
             <b>Fascinated</b> by tech and clean user experiences.
           </p>
-
-          <div className="mt-10 flex justify-center gap-3">
-            <a
-              href="mailto:ikrame.spaces@gmail.com"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-300"
-            >
-              <Mail className="w-4 h-4" />
-              <span>Say hi!</span>
-            </a>
-            <a
-              href="https://github.com/MysticKrameNine"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800"
-            >
-              <Github className="w-4 h-4" /> GitHub
-            </a>
-            <a
-              href="https://www.linkedin.com/in/ikrame-8429bb1a8/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800"
-            >
-              <Linkedin className="w-4 h-4" /> LinkedIn
-            </a>
+          <div className={`hero-cta${typed ? " is-in" : ""}`}>
+            <a href={`mailto:${EMAIL}`} className="btn btn-ghost"><Mail /> Say hi!</a>
+            <a href={GITHUB} target="_blank" rel="noreferrer" className="btn btn-ghost"><Github /> GitHub</a>
+            <a href={LINKEDIN} target="_blank" rel="noreferrer" className="btn btn-ghost"><Linkedin /> LinkedIn</a>
+          </div>
+          <div className={`hero-modes${typed ? " is-in" : ""}`}>
+            <button type="button" className="btn btn-primary" onClick={() => window.dispatchEvent(new Event("ik:career"))}>
+              <Compass /> Career mode
+            </button>
+            <button type="button" className="btn btn-glow" onClick={() => window.dispatchEvent(new Event("ik:game"))}>
+              <Gamepad /> Game mode
+            </button>
           </div>
         </div>
       </section>
 
-      {/* ===== / about me ===== */}
-      <Section id="about" title="about me">
-        <div className="space-y-6">
-          <p className="max-w-3xl text-slate-300/90">
-            I’m currently an <b>Infrastructure Engineer in</b> (Azure, Paris), working at the intersection of systems, security, and software. I’m also pursuing a
-            <b> part-time MBA</b>. My background spans data-center, networking, and secure software
-            delivery. I care about pragmatic tools that reduce toil, clear interfaces, and impact.
-          </p>
-
-          <div>
-            <h4 className="text-sm uppercase tracking-widest text-slate-400">Technologies I work with</h4>
-            <ul className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-2 text-slate-300/90">
-              {["TypeScript","Python","React.js","Java","JavaScript","C#"].map((t) => (
-                <li key={t} className="flex items-center gap-2">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                  {t}
-                </li>
+      {/* ===== ABOUT ===== */}
+      <section id="about" className="section">
+        <SectionTitle n="01" label="About">about <em>me</em></SectionTitle>
+        <div className="about-grid">
+          <div className="about-text reveal">
+            <p>
+              I’m currently a <b>Senior Infrastructure Engineer</b> working at the intersection of systems, security, and
+              software. I’m also pursuing a <b>part-time MBA</b>. My background spans data-center, networking, and secure software
+              delivery. I care about pragmatic tools that reduce toil, clear interfaces, and impact.
+            </p>
+            <h4 className="mini-title">Technologies I work with</h4>
+            <ul className="tech-list">
+              {TECH.map((t) => (
+                <li key={t}>{t}</li>
               ))}
             </ul>
+            <p>Outside of work, I’m into sports, art, science, &amp; I play piano.</p>
           </div>
-
-          <p className="max-w-3xl text-slate-300/90">
-            Outside of work, I’m into sports, art, science, & I play piano.
-          </p>
+          <figure className="about-photo reveal">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/me/paris-night.jpg" alt="Ikrame at night in Paris, near the Arc de Triomphe" width={1000} height={1333} loading="lazy" />
+            <figcaption className="mono">a little bit of stardust</figcaption>
+          </figure>
         </div>
-      </Section>
-
-      {/* ===== / experience ===== */}
-      <Section id="experience" title="experience">
-
-
-        <Experience
-          company="Healthcare Technology - France"
-          role="Senior Infrastructure Engineer"
-          period="Mar 2026 – Present"
-          highlight="Working with high-availability software systems supporting hospitals across France."
-          bullets={[
-            "Production troubleshooting across Linux, RedHat 8, Oracle, Java and distributed systems.",
-            "Root-cause analysis across infrastructure, database and application layers.",
-          ]}
-        />
-
-        <Experience
-          company="Equinix - Frankfurt, Germany"
-          role="Infrastructure Operations"
-          period="Oct 2025 – Feb 2026"
-          highlight="Mission-critical infrastructure in an international, high-availability environment."
-          bullets={[
-            "Enterprise data-center infrastructure, networking and incident troubleshooting.",
-          ]}
-        />
-        <Experience
-          company="Microsoft - Paris"
-          role="Infrastructure Operations (Networking & Azure Cloud)"
-          period="Jan 2025 – Jul 2025"
-          highlight="Azure data-center operations with a focus on availability, safety and secure lifecycle."
-          bullets={[
-            "Built an internal training/testing platform controlling data-hall access by skill level; increased completion via automated notifications.",
-            "Full infra data centers ops: server integration, Network control, Azure connectivity.",
-            "Secure decommissioning per NIST 800-88; EHS-compliant operations.",
-            "Troubleshot infrastructure incidents in a high-availability environment under strict operational and security procedures."
-          ]}
-        />
-
-          <Experience
-          company="Android | Guardsquare - Belgium"
-          role="ProGuard Software Engineer - Mobile App Protection"
-          period="Jun 2023 – Sep 2023"
-          bullets={[
-            "Engineered ProGuard/ASM post-processing to retain runtime annotations and improve obfuscation resilience.",
-            "Gradle plugin development; designed unit & integration tests (JUnit).",
-          ]}
-        />
-        <Experience
-          company="Alstef Group                                                                                                  France"
-          role="Software & Cybersecurity Engineer"
-          period="Sep 2021 – Sep 2024"
-          bullets={[
-            "Crisis simulations with the French Cyber Command (COMCYBER).",
-            "ELK stack for log collection/analysis; monitoring prototypes (Grafana/Prometheus).",
-            "Identity & access: Keycloak + Spring Security, OAuth2/JWT, RBAC, AOP-based audit logging; EBIOS risk analysis.",
-          ]}
-        />
-      </Section>
-
-      {/* ===== / pet projects ===== */}
-      <Section id="projects" title="pet projects">
-        <div className="mt-2 text-slate-400 text-sm">
-          Hand-picked work. The rest lives on my GitHub.
-        </div>
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card
-            title="Quantum Intrusion Detection"
-            desc="Experiments toward anomaly detection using quantum-inspired approaches."
-            tags={["Python", "Jupyter", "Security"]}
-            href="https://github.com/MysticKrameNine/Quantum_Intrusion_Detection"
-          />
-          <Card
-            title="TrustShare"
-            desc="Lightweight CRUD app demonstrating server-rendered flows and forms."
-            tags={["PHP", "MySQL"]}
-            href="https://github.com/MysticKrameNine/TrustShare"
-          />
-          <Card
-            title="JarGraphAnalyzer"
-            desc="Low-level data structures / algorithms with emphasis on correctness."
-            tags={["C", "Algorithms"]}
-            href="https://github.com/MysticKrameNine/JarGraphAnalyzer"
-          />
-          <Card
-            title="CalculatorForSonarQubeAnanalysis"
-            desc="Tiny front-end pieces exploring layout & typography."
-            tags={["HTML", "CSS"]}
-            href="https://github.com/MysticKrameNine/CalculatorForSonarQubeAnanalysis"
-          />
-          <Card
-            title="ATM Machine"
-            desc="Classic Java OOP exercise—PIN auth, balance ops, receipts."
-            tags={["Java", "OOP"]}
-            href="https://github.com/MysticKrameNine/ATM-Machine"
-          />
-          <Card
-            title="exb1610local (fork)"
-            desc="Academic Java project fork—demonstrates build & contribution workflow."
-            tags={["Java", "Gradle"]}
-            href="https://github.com/MysticKrameNine/exb1610local"
-          />
-        </div>
-
-        <div className="mt-8">
-          <a
-            href="https://github.com/MysticKrameNine"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-5 py-3 text-[15px] hover:bg-slate-800"
-          >
-            View all on GitHub →
-          </a>
-        </div>
-      </Section>
-
-      {/* ===== / services ===== */}
-      <Section id="services" title="services">
-        <p className="text-slate-300/90 max-w-3xl">
-          Advisory and delivery services focused on reliability, security, and measurable outcomes.
-        </p>
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <ServiceCard
-            icon={Globe}
-            title="Website Creation & Design"
-            desc="Design and build performant, accessible websites that reflect your brand and convert."
-            points={[
-              "Next.js/React, SSR/SSG",
-              "Marketing sites, portfolios, lightweight apps",
-              "Analytics instrumentation and SEO foundations",
-            ]}
-            price="From €800 (typical €800–€2,500)"
-          />
-          <ServiceCard
-            icon={Smartphone}
-            title="Mobile App Security"
-            desc="End-to-end hardening for Android applications and delivery pipelines."
-            points={[
-              "ProGuard/DexGuard guidance and rules",
-              "Secure storage; TLS hardening & certificate pinning",
-              "Play Integrity enforcement and tamper detection",
-            ]}
-            price="From €900 (security review)"
-          />
-          <ServiceCard
-            icon={Shield}
-            title="Risk Analysis (EBIOS)"
-            desc="Decision-grade risk assessments aligned with EBIOS, with a clear treatment roadmap."
-            points={[
-              "Asset inventory and threat modeling",
-              "Impact/likelihood scoring and risk register",
-              "Mitigation plan, KPIs, and governance artefacts",
-            ]}
-            price="From €1,200 (starter workshop)"
-          />
-          <ServiceCard
-            icon={ClipboardList}
-            title="Security Reviews"
-            desc="Independent review of code, infrastructure, and processes with prioritized remediation."
-            points={[
-              "AuthN/AuthZ, secrets handling, logging/monitoring",
-              "OWASP Top 10 spot-checks",
-              "Actionable findings ordered by risk",
-            ]}
-            price="From €700 (mini-audit)"
-          />
-          <ServiceCard
-            icon={Wrench}
-            title="Custom Web Applications"
-            desc="Bespoke internal tools and dashboards that streamline operations and reduce manual effort."
-            points={[
-              "CRUD workflows, forms, and admin panels",
-              "API integration (REST/GraphQL)",
-              "CI/CD enablement and basic observability",
-            ]}
-            price="From €1,500 (typical €1,500–€6,000)"
-          />
-
-          <div className="rounded-2xl border border-dashed border-slate-800 p-6 flex flex-col items-start justify-center">
-            <h3 className="text-lg font-semibold text-slate-100">More services coming soon…</h3>
-            <p className="mt-2 text-slate-300/90 text-sm">
-              Have something specific in mind? I can scope it quickly.
-            </p>
-            <a
-              href="mailto:ikrame.spaces@gmail.com?subject=Project%20inquiry"
-              className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
-            >
-              <Mail className="w-4 h-4" /> Request a quote
-            </a>
-            <p className="mt-3 text-xs text-slate-400">
-              Prices are indicative and exclude VAT. Final quotes depend on scope & timeline.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-wrap gap-2">
-          {["Next.js","React","TypeScript","Node.js","Java","C#","Azure","EBIOS","OWASP"].map((t) => (
-            <span key={t} className="text-xs text-slate-400 rounded-full border border-slate-700 px-2 py-1">
-              {t}
-            </span>
+        <div className="stats reveal">
+          {STATS.map((s) => (
+            <div key={s.label} className="stat">
+              <span className="stat-value">{s.value}</span>
+              <span className="stat-label">{s.label}</span>
+            </div>
           ))}
         </div>
-      </Section>
+      </section>
 
-      {/* ===== / contact ===== */}
-      <Section id="contact" title="contact">
-        <div className="text-center">
-          <p className="mt-1 text-slate-300/90 max-w-2xl mx-auto">
-            Open to software engineering roles across cloud/infra/dev-tools.
-          </p>
-          <div className="mt-6 flex justify-center gap-4">
-            <a
-              href="mailto:ikrame.spaces@gmail.com"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
-            >
-              <Mail className="w-4 h-4" /> Email
+      {/* ===== EXPERIENCE ===== */}
+      <section id="experience" className="section">
+        <SectionTitle n="02" label="Experience">the <em>journey</em></SectionTitle>
+        <p className="section-lede reveal">
+          Spin the globe and ride along: every glowing city is a chapter of my career. Press play for career mode, or click a city.
+        </p>
+        <div className="reveal">
+          <CareerGlobe />
+        </div>
+
+        <div className="highlights">
+          {HIGHLIGHTS.map((h, i) => (
+            <article key={h.title} className="highlight reveal" style={{ transitionDelay: `${i * 90}ms` }}>
+              <span className="mono kicker">{h.kicker}</span>
+              <h3>{h.title}</h3>
+              <p>{h.body}</p>
+            </article>
+          ))}
+        </div>
+
+      </section>
+
+      {/* ===== GAME TEASER ===== */}
+      <section className="game-teaser reveal" aria-label="Game mode">
+        <div className="game-teaser-inner">
+          <TeaserRider />
+          <div className="game-teaser-text">
+            <h2>Ride through my career.</h2>
+            <p>Rennes → Leuven → Paris → Frankfurt. Jump the bugs, duck the phishing, ride the turbo, catch the skills.</p>
+          </div>
+          <button type="button" className="btn btn-glow" onClick={() => window.dispatchEvent(new Event("ik:game"))}>
+            <Gamepad /> Play Ikrame&apos;s Ride
+          </button>
+        </div>
+      </section>
+
+      {/* ===== PROJECTS ===== */}
+      <section id="projects" className="section">
+        <SectionTitle n="03" label="Projects">pet <em>projects</em></SectionTitle>
+        <p className="section-lede reveal">Hand-picked work. The rest lives on my GitHub.</p>
+        <div className="reveal">
+          <ProjectsFloat projects={PROJECTS} />
+        </div>
+        <a href={GITHUB} target="_blank" rel="noreferrer" className="btn btn-ghost more-link reveal">
+          View all on GitHub →
+        </a>
+      </section>
+
+      {/* ===== SERVICES ===== */}
+      <section id="services" className="section">
+        <SectionTitle n="04" label="Services">how I can <em>help</em></SectionTitle>
+        <p className="section-lede reveal">Advisory and delivery services focused on reliability, security, and measurable outcomes.</p>
+        <div className="services">
+          {SERVICES.map((s, i) => {
+            const Icon = SERVICE_ICONS[s.icon];
+            return (
+              <article key={s.title} className="service reveal" style={{ transitionDelay: `${(i % 3) * 80}ms` }}>
+                <div className="service-head">
+                  <span className="service-icon"><Icon /></span>
+                  <h3>{s.title}</h3>
+                </div>
+                <p>{s.desc}</p>
+                <ul>
+                  {s.points.map((pt) => (
+                    <li key={pt}>{pt}</li>
+                  ))}
+                </ul>
+                <span className="service-price">{s.price}</span>
+              </article>
+            );
+          })}
+          <article className="service service-cta reveal">
+            <h3>More services coming soon…</h3>
+            <p>Have something specific in mind? I can scope it quickly.</p>
+            <a href={`mailto:${EMAIL}?subject=Project%20inquiry`} className="btn btn-ghost">
+              <Mail /> Request a quote
             </a>
-            <a
-              href="https://github.com/MysticKrameNine"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
-            >
-              <Github className="w-4 h-4" /> GitHub
-            </a>
-            <a
-              href="https://www.linkedin.com/in/ikrame-8429bb1a8/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-4 py-2 text-sm hover:bg-slate-800"
-            >
-              <Linkedin className="w-4 h-4" /> LinkedIn
-            </a>
+            <p className="small t-dim">Prices are indicative and exclude VAT. Final quotes depend on scope &amp; timeline.</p>
+          </article>
+        </div>
+        <div className="chips tag-row reveal">
+          {SERVICE_TAGS.map((t) => (
+            <span key={t} className="chip">{t}</span>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== CREATIVE: BOOK + ART ===== */}
+      <section id="creative" className="section">
+        <SectionTitle n="05" label="Art"><em>art</em></SectionTitle>
+        <p className="section-lede reveal">
+          The other side of the brain: writing, painting, sketching and 3D sculpting.
+        </p>
+
+        <div className="book reveal">
+          <div className="book-cover-wrap">
+            {BOOK.cover ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="book-cover" src={BOOK.cover} alt={`Cover of ${BOOK.series}: ${BOOK.title}`} />
+            ) : (
+              <div className="book-cover book-cover-designed" aria-hidden="true">
+                <span className="book-orbit" />
+                <span className="book-atom" />
+                <span className="book-cover-series">{BOOK.series}</span>
+                <span className="book-cover-title">{BOOK.title}</span>
+                <span className="book-cover-author">Ikrame B.</span>
+              </div>
+            )}
+          </div>
+          <div className="book-text">
+            <span className="mono kicker">{BOOK.status}</span>
+            <h3 className="book-title">
+              {BOOK.series} <span className="book-title-sub">— {BOOK.title}</span>
+            </h3>
+            <p className="book-subtitle">{BOOK.subtitle}</p>
+            <blockquote className="book-quote">“{BOOK.quote}”</blockquote>
+            <p className="book-blurb">{BOOK.blurb}</p>
+            <div className="book-author">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/me/portrait.jpg" alt="Ikrame, the author" width={56} height={56} loading="lazy" />
+              <span>written by <b>Ikrame B.</b></span>
+            </div>
+            {BOOK.link ? (
+              <a href={BOOK.link} target="_blank" rel="noreferrer" className="btn btn-primary">{BOOK.linkLabel} →</a>
+            ) : null}
           </div>
         </div>
-      </Section>
 
-      {/* ===== Footer ===== */}
-      <footer className="border-t border-slate-800">
-        <div className="mx-auto max-w-6xl px-5 py-8 text-center text-sm text-slate-400">
-          Built and designed by <span className="text-slate-200">Ikrame B</span>.
-          <span className="mx-2">•</span>
-          All rights reserved. © {new Date().getFullYear()}
+        <h3 className="sub-title reveal">art</h3>
+        <ArtGallery />
+      </section>
+
+      {/* ===== CONTACT ===== */}
+      <section id="contact" className="section contact">
+        <SectionTitle n="06" label="Contact">get in <em>touch</em></SectionTitle>
+        
+        <div className="reveal">
+          <p className="section-lede">Open to software engineering roles across cloud/infra/dev-tools.</p>
+          <div className="contact-links">
+            <a href={`mailto:${EMAIL}`} className="btn btn-ghost"><Mail /> Email</a>
+            <a href={GITHUB} target="_blank" rel="noreferrer" className="btn btn-ghost"><Github /> GitHub</a>
+            <a href={LINKEDIN} target="_blank" rel="noreferrer" className="btn btn-ghost"><Linkedin /> LinkedIn</a>
+          </div>
+          <p className="contact-mail mono">{EMAIL}</p>
         </div>
+      </section>
+
+      <footer className="footer">
+        Built and designed by <span className="t-strong">Ikrame B</span>.<span className="dot">•</span>All rights reserved. ©{" "}
+        {new Date().getFullYear()}
       </footer>
-
-      {/* Local CSS for shimmer + exact-width typing + subtitle fade */}
-      <style jsx global>{`
-        .shimmer-text {
-          background: linear-gradient(90deg, #34d399, #22d3ee, #60a5fa, #22d3ee, #34d399);
-          background-size: 200% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation: shimmer 6s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        .typing {
-          width: 0;
-          white-space: nowrap;
-          overflow: hidden;
-          border-right: 3px solid rgba(165, 243, 252, 0.9);
-          animation:
-            typingPx 2.4s steps(16, end) forwards,
-            caret 1s steps(1) infinite;
-        }
-        @keyframes typingPx {
-          from { width: 0; }
-          to   { width: var(--typew, 0px); }
-        }
-        @keyframes caret {
-          0%, 49%  { border-color: rgba(165, 243, 252, 0.9); }
-          50%,100% { border-color: transparent; }
-        }
-
-        .headline-sub { animation: fadeIn 600ms ease forwards; animation-delay: 2.45s; }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(4px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-    </div>
+    </main>
   );
 }
