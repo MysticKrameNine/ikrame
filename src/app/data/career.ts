@@ -291,20 +291,27 @@ export type Credential = {
   detail: string;
   kind: "cert" | "mission" | "skill" | "company";
   status?: "progress";
-  /** official logo file in /public/logos (svg or png). Missing file = elegant seal instead. */
+  /** logo file in /public/logos (full path with extension). Missing file = engraved seal instead. */
   logo?: string;
-  icon?: "shield" | "radar" | "code";
+  icon?: "shield" | "radar" | "code" | "cross" | "key";
+  /** round emblem that should fill the whole planet */
+  fill?: boolean;
+  /** logo sits on a dark background */
+  dark?: boolean;
 };
 
 export const CREDENTIALS: Credential[] = [
-  { id: "secnumedu", name: "SecNumEdu", kind: "cert", detail: "Engineering degree certified by the ANSSI", logo: "/logos/secnumedu" },
-  { id: "comcyber", name: "COMCYBER", kind: "mission", detail: "Crisis simulation exercises with the French Cyber Command", icon: "shield", logo: "/logos/comcyber" },
+  { id: "anssi", name: "ANSSI", kind: "cert", fill: true, detail: "French National Cybersecurity Agency · my engineering degree is certified by it", logo: "/logos/anssi.png" },
+  { id: "secnumedu", name: "SecNumEdu", kind: "cert", detail: "ANSSI label of my cybersecurity engineering degree", logo: "/logos/secnumedu.png" },
+  { id: "comcyber", name: "COMCYBER", kind: "mission", fill: true, detail: "Crisis simulation exercises with the French Cyber Command", logo: "/logos/comcyber.png" },
+  { id: "hospitals", name: "French hospitals", kind: "mission", detail: "Keeping high-availability systems running for hospitals across France, 24/7", icon: "cross" },
+  { id: "keycloak", name: "Keycloak", kind: "skill", detail: "Identity & access: Keycloak + Spring Security, OAuth2/JWT, RBAC", icon: "key" },
   { id: "siem", name: "SIEM", kind: "skill", detail: "Log collection, correlation & detection · ELK, Grafana", icon: "radar" },
-  { id: "oscp", name: "OSCP", kind: "cert", status: "progress", detail: "Offensive Security Certified Professional", logo: "/logos/oscp" },
-  { id: "cisco", name: "Cisco", kind: "cert", detail: "Networking certification", logo: "/logos/cisco" },
-  { id: "jpmorgan", name: "J.P. Morgan", kind: "cert", detail: "Software Engineering certification", icon: "code", logo: "/logos/jpmorgan" },
-  { id: "microsoft", name: "Microsoft", kind: "company", detail: "Azure data-center operations · Paris", logo: "/logos/microsoft" },
-  { id: "proguard", name: "ProGuard", kind: "company", detail: "Android app protection · Guardsquare, Leuven", logo: "/logos/proguard" },
+  { id: "oscp", name: "OSCP", kind: "cert", status: "progress", detail: "Offensive Security Certified Professional" },
+  { id: "cisco", name: "Cisco", kind: "cert", detail: "Networking certification" },
+  { id: "jpmorgan", name: "J.P. Morgan", kind: "cert", detail: "Software Engineering certification", icon: "code" },
+  { id: "microsoft", name: "Microsoft", kind: "company", detail: "Azure data-center operations · Paris", logo: "/logos/microsoft.png" },
+  { id: "proguard", name: "ProGuard", kind: "company", dark: true, detail: "Android app protection · Guardsquare, Leuven", logo: "/logos/proguard.png" },
 ];
 
 export const LANGUAGES = [

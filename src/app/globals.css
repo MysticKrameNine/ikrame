@@ -1200,3 +1200,23 @@ html.is-loading { overflow: hidden; }
 .sun-plasma { clip-path: circle(49%); }
 .sun-core { overflow: hidden; isolation: isolate; }
 .sun-plasma { clip-path: none; -webkit-mask: none; mask: none; }
+
+/* ===== centre: the Earth turned towards France (replaces the sun) ===== */
+.oc-sun { display: none; }
+.oc-stage { background: radial-gradient(40% 40% at 50% 50%, rgba(103, 232, 249, 0.08), transparent 70%); }
+.oc-earth { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 120; pointer-events: none; display: flex; flex-direction: column; align-items: center; }
+.oc-earth canvas { display: block; filter: drop-shadow(0 0 24px rgba(103, 232, 249, 0.35)); }
+.oc-earth-label { margin-top: 2px; font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--term-green); text-shadow: 0 0 8px rgba(110, 231, 183, 0.6); }
+
+/* real logos on the planets */
+.oc-item.is-fill .oc-medal img { width: 100%; height: 100%; }
+.oc-item.is-dark .oc-medal { background: radial-gradient(circle at 35% 30%, #0a4560, #00374c 70%); }
+.oc-item.is-dark .oc-medal img { width: 58%; height: 58%; }
+.oc-icon.cross path:first-child { fill: rgba(251, 113, 133, 0.18); stroke: #fb7185; }
+.oc-icon.cross .pulse-line { stroke: var(--term-green); stroke-width: 3.5; stroke-dasharray: 140; stroke-dashoffset: 140; animation: ecg 2.2s linear infinite; }
+@keyframes ecg { to { stroke-dashoffset: -140; } }
+.oc-item.k-mission .oc-medal, .oc-item.k-skill .oc-medal { background: radial-gradient(circle at 35% 30%, #13284a, #0b1020 75%); }
+.oc-item.is-fill.k-mission .oc-medal { background: #fff; }
+.oc-icon.key { stroke: #fbbf24; stroke-width: 6; }
+.oc-item[aria-label^="SecNumEdu"] .oc-medal img { width: 88%; height: 88%; }
+@media (max-width: 760px) { .oc-stage { height: 560px; } .oc-earth-label { font-size: 0.56rem; } }

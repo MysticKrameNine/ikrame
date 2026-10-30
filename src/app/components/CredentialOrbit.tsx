@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
+import { LAND_ROWS, EU_BOX, EU_ROWS } from "../data/landDots";
 
 /**
  * A little solar system of credentials: a glowing sun in the middle, each credential is a planet
@@ -10,8 +11,30 @@ import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/car
  */
 
 // orbit index for each credential (0 = closest to the sun)
-const ORBIT: Record<string, number> = { secnumedu: 0, siem: 0, comcyber: 1, cisco: 1, oscp: 2, microsoft: 2, jpmorgan: 3, proguard: 3 };
-const SIZE: Record<string, number> = { secnumedu: 92, comcyber: 90, siem: 70, oscp: 84, cisco: 76, microsoft: 88, jpmorgan: 80, proguard: 82 };
+const ORBIT: Record<string, number> = { secnumedu: 0, siem: 0, keycloak: 0, anssi: 1, comcyber: 1, cisco: 1, oscp: 2, microsoft: 2, hospitals: 2, jpmorgan: 3, proguard: 3 };
+const SIZE: Record<string, number> = { anssi: 94, secnumedu: 90, comcyber: 94, hospitals: 92, keycloak: 76, siem: 70, oscp: 84, cisco: 76, microsoft: 84, jpmorgan: 80, proguard: 82 };
+
+// land dots (lon, lat), with a finer grid for Europe so France reads clearly
+const DOTS = (() => {
+  const out: number[] = [];
+  for (const row of LAND_ROWS) {
+    const [lat, n, ...runs] = row;
+    for (let r = 0; r < runs.length; r += 2)
+      for (let i = runs[r]; i < runs[r] + runs[r + 1]; i++) {
+        const lon = -180 + ((i + 0.5) * 360) / n;
+        if (lon > EU_BOX.lon0 && lon < EU_BOX.lon1 && lat > EU_BOX.lat0 && lat < EU_BOX.lat1) continue;
+        out.push(lon, lat);
+      }
+  }
+  for (const row of EU_ROWS) {
+    const [lat, ...runs] = row;
+    for (let r = 0; r < runs.length; r += 2)
+      for (let i = runs[r]; i < runs[r] + runs[r + 1]; i++) out.push(EU_BOX.lon0 + (i + 0.5) * EU_BOX.step, lat);
+  }
+  return new Float32Array(out);
+})();
+const inFrance = (lon: number, lat: number) =>
+  lat > 42.3 && lat < 51.1 && lon > -4.9 && lon < 8.3 && !(lat > 49.6 && lon < -1.9) && !(lat < 43.6 && lon > 3.3 && lon < 6.2 && lat < 43.2);
 const ORBIT_R = [0.4, 0.58, 0.77, 0.98]; // fraction of the max horizontal radius
 const BELT_R = 0.875;
 const TILT = 0.4; // vertical squash of the orbits (3D tilt)
@@ -21,6 +44,7 @@ type Rock = { a: number; r: number; s: number; spin: number; rot: number; pts: n
 export default function CredentialOrbit() {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const globeRef = useRef<HTMLCanvasElement>(null);
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const shadesRef = useRef<(HTMLSpanElement | null)[]>([]);
   const [active, setActive] = useState<Credential | null>(null);
@@ -33,17 +57,18 @@ export default function CredentialOrbit() {
   }, [active]);
 
   useEffect(() => {
-    const stage = stageRef.current, canvas = canvasRef.current;
-    if (!stage || !canvas) return;
+    const stage = stageRef.current, canvas = canvasRef.current, gcan = globeRef.current;
+    if (!stage || !canvas || !gcan) return;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const gtx = gcan.getContext("2d");
+    if (!ctx || !gtx) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0, t = 0, last = performance.now(), visible = true, w = 0, h = 0;
 
     // each planet starts at its own place on its orbit
     const phase = CREDENTIALS.map((c, i) => {
       const sameOrbit = CREDENTIALS.filter((d) => ORBIT[d.id] === ORBIT[c.id]);
-      return sameOrbit.indexOf(c) * Math.PI + ORBIT[c.id] * 0.9 + i * 0.05;
+      return (sameOrbit.indexOf(c) / sameOrbit.length) * Math.PI * 2 + ORBIT[c.id] * 0.9 + i * 0.05;
     });
     const rocks: Rock[] = Array.from({ length: 280 }, () => {
       const n = 6 + Math.floor(Math.random() * 4);
@@ -67,8 +92,74 @@ export default function CredentialOrbit() {
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const gr = w < 600 ? 56 : 82;
+      gcan.width = gr * 2 * dpr;
+      gcan.height = gr * 2 * dpr;
+      gcan.style.width = gr * 2 + "px";
+      gcan.style.height = gr * 2 + "px";
+      gtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      globeR = gr;
     };
+    let globeR = 82;
     resize();
+
+    // the Earth in the middle, turned towards France
+    const drawGlobe = () => {
+      const r = globeR - 6, c = globeR;
+      gtx.clearRect(0, 0, c * 2, c * 2);
+      const lon0 = (2.5 + Math.sin(t * 1.6) * 22) * (Math.PI / 180); // always facing France
+      const lat0 = 30 * (Math.PI / 180);
+      // atmosphere
+      const atm = gtx.createRadialGradient(c, c, r * 0.9, c, c, r + 6);
+      atm.addColorStop(0, "rgba(103,232,249,0.0)");
+      atm.addColorStop(0.6, "rgba(103,232,249,0.35)");
+      atm.addColorStop(1, "rgba(103,232,249,0)");
+      gtx.fillStyle = atm;
+      gtx.beginPath(); gtx.arc(c, c, r + 6, 0, Math.PI * 2); gtx.fill();
+      // ocean
+      const sea = gtx.createRadialGradient(c - r * 0.35, c - r * 0.35, r * 0.1, c, c, r);
+      sea.addColorStop(0, "#1c3b6e");
+      sea.addColorStop(1, "#08122a");
+      gtx.fillStyle = sea;
+      gtx.beginPath(); gtx.arc(c, c, r, 0, Math.PI * 2); gtx.fill();
+      const sl0 = Math.sin(lat0), cl0 = Math.cos(lat0);
+      for (let i = 0; i < DOTS.length; i += 2) {
+        const lon = DOTS[i], lat = DOTS[i + 1];
+        const la = lat * (Math.PI / 180), lo = lon * (Math.PI / 180) - lon0;
+        const cosc = sl0 * Math.sin(la) + cl0 * Math.cos(la) * Math.cos(lo);
+        if (cosc <= 0) continue;
+        const x = c + r * Math.cos(la) * Math.sin(lo);
+        const y = c - r * (cl0 * Math.sin(la) - sl0 * Math.cos(la) * Math.cos(lo));
+        const fr = inFrance(lon, lat);
+        gtx.globalAlpha = fr ? 1 : 0.25 + cosc * 0.55;
+        gtx.fillStyle = fr ? "#6ee7b7" : "#94a3b8";
+        const sz = fr ? 1.5 : 1.05;
+        gtx.fillRect(x - sz / 2, y - sz / 2, sz, sz);
+      }
+      gtx.globalAlpha = 1;
+      // a pulse over Paris + hospitals glowing across France
+      const pla = 48.85 * (Math.PI / 180), plo = 2.35 * (Math.PI / 180) - lon0;
+      if (sl0 * Math.sin(pla) + cl0 * Math.cos(pla) * Math.cos(plo) > 0) {
+        const px = c + r * Math.cos(pla) * Math.sin(plo);
+        const py = c - r * (cl0 * Math.sin(pla) - sl0 * Math.cos(pla) * Math.cos(plo));
+        const ph = (t * 3) % 1;
+        gtx.strokeStyle = `rgba(110,231,183,${1 - ph})`;
+        gtx.lineWidth = 1.5;
+        gtx.beginPath(); gtx.arc(px, py, 3 + ph * 14, 0, Math.PI * 2); gtx.stroke();
+        gtx.fillStyle = "#ffffff";
+        gtx.beginPath(); gtx.arc(px, py, 2.2, 0, Math.PI * 2); gtx.fill();
+      }
+      // shading: lit from the top-left
+      const sh = gtx.createRadialGradient(c - r * 0.4, c - r * 0.45, r * 0.2, c, c, r * 1.05);
+      sh.addColorStop(0, "rgba(255,255,255,0.08)");
+      sh.addColorStop(0.7, "rgba(0,0,0,0)");
+      sh.addColorStop(1, "rgba(0,0,0,0.45)");
+      gtx.fillStyle = sh;
+      gtx.beginPath(); gtx.arc(c, c, r, 0, Math.PI * 2); gtx.fill();
+      gtx.strokeStyle = "rgba(165,243,252,0.6)";
+      gtx.lineWidth = 1;
+      gtx.beginPath(); gtx.arc(c, c, r, 0, Math.PI * 2); gtx.stroke();
+    };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
 
@@ -84,6 +175,7 @@ export default function CredentialOrbit() {
           if (!reduced && !paused) t += dt * 0.12;
         }
         draw();
+        drawGlobe();
       }
       raf = requestAnimationFrame(frame);
     };
@@ -92,7 +184,7 @@ export default function CredentialOrbit() {
       const cx = w / 2, cy = h / 2;
       const narrow = w < 600;
       const R = narrow ? w * 0.45 : Math.min(w * 0.47, 520);
-      const tilt = narrow ? 0.78 : TILT;
+      const tilt = narrow ? 1.05 : TILT;
       const spinAll = dragRef.current.offset;
       ctx.clearRect(0, 0, w, h);
 
@@ -147,7 +239,7 @@ export default function CredentialOrbit() {
         const a = phase[i] + t * speed + spinAll;
         const x = Math.cos(a) * R * ORBIT_R[o], y = Math.sin(a) * R * ORBIT_R[o] * tilt;
         const depth = (Math.sin(a) + 1) / 2;
-        const base = (SIZE[c.id] ?? 80) / 92 * (narrow ? 0.6 : 0.88);
+        const base = (SIZE[c.id] ?? 80) / 92 * (narrow ? 0.5 : 0.88);
         const isActive = activeRef.current?.id === c.id;
         const sc = base * (0.62 + depth * 0.5) * (isActive ? 1.15 : 1);
         el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${sc})`;
@@ -210,15 +302,10 @@ export default function CredentialOrbit() {
       >
         <canvas ref={canvasRef} className="oc-canvas" aria-hidden="true" />
 
-        {/* the sun */}
-        <div className={`oc-sun${active ? " is-dim" : ""}`} aria-hidden="true">
-          <span className="sun-corona" />
-          <span className="sun-flare" />
-          <span className="sun-core">
-            <span className="sun-plasma p1" />
-            <span className="sun-plasma p2" />
-            <span className="sun-limb" />
-          </span>
+        {/* the Earth, turned towards France */}
+        <div className="oc-earth" aria-hidden="true">
+          <canvas ref={globeRef} />
+          <span className="oc-earth-label mono">serving France · 24/7</span>
         </div>
 
         {/* label under the sun, or the selected planet's card */}
@@ -233,7 +320,7 @@ export default function CredentialOrbit() {
             </div>
           ) : (
             <>
-              <span className="oc-title">security, <em>certified</em></span>
+              <span className="oc-title">trusted by <em>France</em></span>
               <span className="oc-sub mono">drag to spin · hover a planet</span>
             </>
           )}
@@ -244,7 +331,7 @@ export default function CredentialOrbit() {
             key={c.id}
             type="button"
             ref={(el) => { itemsRef.current[i] = el; }}
-            className={`oc-item${c.status === "progress" ? " is-wip" : ""}${active?.id === c.id ? " is-active" : ""} k-${c.kind}`}
+            className={`oc-item${c.fill ? " is-fill" : ""}${c.dark ? " is-dark" : ""}${c.status === "progress" ? " is-wip" : ""}${active?.id === c.id ? " is-active" : ""} k-${c.kind}`}
             onPointerEnter={(e) => { if (e.pointerType === "mouse" && !dragRef.current.down) { hoverRef.current = true; setActive(c); } }}
             onPointerLeave={(e) => { if (e.pointerType === "mouse") { hoverRef.current = false; setActive(null); } }}
             onClick={() => { if (!dragRef.current.moved) setActive((a) => (a?.id === c.id ? null : c)); }}
@@ -283,11 +370,8 @@ export default function CredentialOrbit() {
 
 /** Official logo if the file exists (svg, then png), otherwise an icon or an engraved seal. */
 function Medallion({ c }: { c: Credential }) {
-  const [src, setSrc] = useState<string | null>(c.logo ? `${c.logo}.svg` : null);
-  const onErr = () => {
-    if (src && src.endsWith(".svg") && c.logo) setSrc(`${c.logo}.png`);
-    else setSrc(null);
-  };
+  const [src, setSrc] = useState<string | null>(c.logo ?? null);
+  const onErr = () => setSrc(null);
   if (src) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt="" onError={onErr} draggable={false} />;
@@ -316,7 +400,21 @@ function Seal({ c }: { c: Credential }) {
   );
 }
 
-function Icon({ kind }: { kind: "shield" | "radar" | "code" }) {
+function Icon({ kind }: { kind: "shield" | "radar" | "code" | "cross" | "key" }) {
+  if (kind === "cross")
+    return (
+      <svg viewBox="0 0 100 100" className="oc-icon cross">
+        <path d="M40 22 H60 V40 H78 V60 H60 V78 H40 V60 H22 V40 H40 Z" />
+        <path d="M18 50 H32 L38 40 L46 62 L54 34 L60 50 H82" className="pulse-line" />
+      </svg>
+    );
+  if (kind === "key")
+    return (
+      <svg viewBox="0 0 100 100" className="oc-icon key">
+        <circle cx="36" cy="50" r="14" />
+        <path d="M50 50 H82 M70 50 V62 M78 50 V58" />
+      </svg>
+    );
   if (kind === "radar")
     return (
       <svg viewBox="0 0 100 100" className="oc-icon radar">
