@@ -213,8 +213,12 @@ export default function CredentialOrbit() {
         {/* the sun */}
         <div className={`oc-sun${active ? " is-dim" : ""}`} aria-hidden="true">
           <span className="sun-corona" />
-          <span className="sun-rays" />
-          <span className="sun-core" />
+          <span className="sun-flare" />
+          <span className="sun-core">
+            <span className="sun-plasma p1" />
+            <span className="sun-plasma p2" />
+            <span className="sun-limb" />
+          </span>
         </div>
 
         {/* label under the sun, or the selected planet's card */}
