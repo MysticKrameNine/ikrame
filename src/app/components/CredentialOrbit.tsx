@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
 
 /**
- * A little solar system of credentials: a glowing sun in the middle, each credential is a planet
+ * A little solar system of credentials: a small pink star in the middle, each credential is a planet
  * on its own tilted orbit (inner ones go faster), lit from the sun, passing behind it, with an
  * asteroid belt. Drag (or swipe) to spin the whole system; hover / tap a planet to read it.
  */
@@ -70,10 +70,10 @@ export default function CredentialOrbit() {
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // black hole canvas: wide enough for the accretion disc
-      const hr = w < 600 ? 26 : 40;
+      // star canvas: room for the glow and flares
+      const hr = w < 600 ? 16 : 24;
       holeR = hr;
-      HW = Math.round(hr * 8.4); HH = Math.round(hr * 5);
+      HW = HH = Math.round(hr * 7);
       gcan.width = HW * dpr;
       gcan.height = HH * dpr;
       gcan.style.width = HW + "px";
@@ -83,78 +83,89 @@ export default function CredentialOrbit() {
     let holeR = 32, HW = 270, HH = 160;
     resize();
 
-    // the black hole: lensed photon ring, event horizon, swirling accretion disc (Doppler-bright on one side)
-    const motes = Array.from({ length: 900 }, () => ({
-      r: 1.45 + Math.pow(Math.random(), 1.6) * 2.6,
-      a: Math.random() * Math.PI * 2,
-      s: 0.5 + Math.random() * 1.3,
-      b: 0.35 + Math.random() * 0.65,
+    // a small pink star: white-hot core, rosy photosphere, soft breathing corona and a few thin flares
+    const flares = Array.from({ length: 14 }, (_, i) => ({
+      a: (i / 14) * Math.PI * 2 + Math.random() * 0.3,
+      len: 1.5 + Math.random() * 1.1,
+      sp: 0.3 + Math.random() * 0.8,
+      ph: Math.random() * 6,
     }));
-    const SQ = 0.24; // how flat we see the disc
-    const discBand = (front: boolean) => {
-      const R = holeR, cx = HW / 2, cy = HH / 2;
-      gtx.save();
-      gtx.beginPath();
-      if (front) gtx.rect(0, cy, HW, HH); else gtx.rect(0, 0, HW, cy);
-      gtx.clip();
-      // smooth glow of the disc
-      gtx.save();
-      gtx.translate(cx, cy); gtx.scale(1, SQ);
-      const g = gtx.createRadialGradient(0, 0, R * 1.25, 0, 0, R * 4.1);
-      g.addColorStop(0, "rgba(255,255,255,0)");
-      g.addColorStop(0.06, "rgba(255,246,225,0.85)");
-      g.addColorStop(0.22, "rgba(253,214,140,0.55)");
-      g.addColorStop(0.5, "rgba(103,232,249,0.22)");
-      g.addColorStop(1, "rgba(59,130,246,0)");
-      gtx.fillStyle = g;
-      gtx.beginPath(); gtx.arc(0, 0, R * 4.1, 0, Math.PI * 2); gtx.fill();
-      gtx.restore();
-      // swirling streaks
-      gtx.globalCompositeOperation = "lighter";
-      for (const m of motes) {
-        const sinA = Math.sin(m.a);
-        if (front ? sinA < 0 : sinA >= 0) continue;
-                const dop = 0.45 + 0.55 * (0.5 - 0.5 * Math.cos(m.a)); // left side (coming at us) brighter
-        const heat = Math.max(0, 1 - (m.r - 1.45) / 2.6);
-        gtx.globalAlpha = m.b * dop * (0.22 + heat * 0.5);
-        gtx.strokeStyle = heat > 0.55 ? "#fff3d6" : heat > 0.25 ? "#fcd34d" : "#67e8f9";
-        gtx.lineWidth = 0.4 + heat * 0.7;
-        const len = 0.12 + heat * 0.22;
-        gtx.beginPath();
-        gtx.ellipse(cx, cy, m.r * R, m.r * R * SQ, 0, m.a - len, m.a);
-        gtx.stroke();
-      }
-      gtx.globalAlpha = 1;
-      gtx.globalCompositeOperation = "source-over";
-      gtx.restore();
-    };
+    let st = 0;
     const drawGlobe = (dt: number) => {
       const R = holeR, cx = HW / 2, cy = HH / 2;
+      st += dt;
       gtx.clearRect(0, 0, HW, HH);
-      for (const m of motes) m.a += (dt * m.s * 1.6) / Math.pow(m.r, 1.5);
-      // far side of the disc
-      discBand(false);
-      // the far side bent over the top and under the bottom (gravitational lensing)
-      const lens = gtx.createRadialGradient(cx, cy, R * 1.0, cx, cy, R * 1.75);
-      lens.addColorStop(0, "rgba(255,248,230,0.95)");
-      lens.addColorStop(0.18, "rgba(253,214,140,0.55)");
-      lens.addColorStop(0.5, "rgba(103,232,249,0.18)");
-      lens.addColorStop(1, "rgba(103,232,249,0)");
-      gtx.fillStyle = lens;
-      gtx.beginPath(); gtx.ellipse(cx, cy, R * 1.75, R * 1.62, 0, 0, Math.PI * 2); gtx.fill();
-      // event horizon
-      gtx.fillStyle = "#010208";
+      const breathe = 1 + Math.sin(st * 1.3) * 0.04;
+      // wide soft glow
+      const halo = gtx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 3.4 * breathe);
+      halo.addColorStop(0, "rgba(251,182,206,0.55)");
+      halo.addColorStop(0.35, "rgba(244,114,182,0.18)");
+      halo.addColorStop(1, "rgba(244,114,182,0)");
+      gtx.fillStyle = halo;
+      gtx.beginPath(); gtx.arc(cx, cy, R * 3.4 * breathe, 0, Math.PI * 2); gtx.fill();
+      // corona flares, slowly turning and breathing
+      gtx.globalCompositeOperation = "lighter";
+      for (const f of flares) {
+        const a = f.a + st * 0.05;
+        const l = R * (1 + (f.len - 1) * (0.75 + 0.25 * Math.sin(st * f.sp + f.ph)));
+        const g = gtx.createLinearGradient(cx + Math.cos(a) * R * 0.9, cy + Math.sin(a) * R * 0.9, cx + Math.cos(a) * l, cy + Math.sin(a) * l);
+        g.addColorStop(0, "rgba(253,164,200,0.22)");
+        g.addColorStop(1, "rgba(253,164,200,0)");
+        gtx.strokeStyle = g;
+        gtx.lineWidth = R * 0.22;
+        gtx.lineCap = "round";
+        gtx.beginPath();
+        gtx.moveTo(cx + Math.cos(a) * R * 0.9, cy + Math.sin(a) * R * 0.9);
+        gtx.quadraticCurveTo(cx + Math.cos(a + 0.12) * (R + l) / 2, cy + Math.sin(a + 0.12) * (R + l) / 2, cx + Math.cos(a) * l, cy + Math.sin(a) * l);
+        gtx.stroke();
+      }
+      gtx.globalCompositeOperation = "source-over";
+      // photosphere
+      const body = gtx.createRadialGradient(cx - R * 0.2, cy - R * 0.25, R * 0.05, cx, cy, R);
+      body.addColorStop(0, "#fffafc");
+      body.addColorStop(0.35, "#fde2ee");
+      body.addColorStop(0.75, "#f9a8d4");
+      body.addColorStop(1, "#ec4899");
+      gtx.fillStyle = body;
+      gtx.shadowColor = "rgba(244,114,182,0.9)";
+      gtx.shadowBlur = R * 0.9;
       gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
-      // photon ring, flickering a little
-      const flick = 0.75 + Math.sin(t * 9) * 0.08 + Math.sin(t * 23) * 0.05;
-      gtx.strokeStyle = `rgba(255,244,214,${flick})`;
-      gtx.lineWidth = 1.4;
-      gtx.shadowColor = "rgba(253,214,140,0.9)";
-      gtx.shadowBlur = 10;
-      gtx.beginPath(); gtx.arc(cx, cy, R * 1.04, 0, Math.PI * 2); gtx.stroke();
       gtx.shadowBlur = 0;
-      // near side of the disc, crossing in front of the hole
-      discBand(true);
+      // shimmering surface
+      gtx.save();
+      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.clip();
+      gtx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < 7; i++) {
+        const a = i * 0.9 + st * (0.15 + i * 0.03);
+        const rr = R * (0.25 + (i % 3) * 0.2);
+        const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a * 1.3) * rr;
+        const sp = gtx.createRadialGradient(x, y, 0, x, y, R * 0.45);
+        sp.addColorStop(0, "rgba(255,255,255,0.18)");
+        sp.addColorStop(1, "rgba(255,255,255,0)");
+        gtx.fillStyle = sp;
+        gtx.beginPath(); gtx.arc(x, y, R * 0.45, 0, Math.PI * 2); gtx.fill();
+      }
+      gtx.restore();
+      // limb darkening for a round, 3D feel
+      const limb = gtx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R);
+      limb.addColorStop(0, "rgba(190,24,93,0)");
+      limb.addColorStop(1, "rgba(190,24,93,0.35)");
+      gtx.fillStyle = limb;
+      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
+      // thin starburst spikes
+      gtx.globalCompositeOperation = "lighter";
+      for (const [ang, ln] of [[0, 3.2], [Math.PI / 2, 2.6]] as const) {
+        const L = R * ln * breathe;
+        const dx = Math.cos(ang) * L, dy = Math.sin(ang) * L;
+        const g = gtx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
+        g.addColorStop(0, "rgba(255,230,242,0)");
+        g.addColorStop(0.5, "rgba(255,240,248,0.55)");
+        g.addColorStop(1, "rgba(255,230,242,0)");
+        gtx.strokeStyle = g;
+        gtx.lineWidth = 1.1;
+        gtx.beginPath(); gtx.moveTo(cx - dx, cy - dy); gtx.lineTo(cx + dx, cy + dy); gtx.stroke();
+      }
+      gtx.globalCompositeOperation = "source-over";
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
