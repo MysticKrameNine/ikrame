@@ -91,7 +91,6 @@ export default function ProjectsFloat({ projects }: { projects: Project[] }) {
               <span className="pc-glow" aria-hidden="true" />
               <div className="pc-top">
                 <span className="pc-num">{String(i + 1).padStart(2, "0")}</span>
-                <span className="pc-path">~/{p.href.split("/").pop()}</span>
               </div>
               <h3 className="pc-title">{p.title}</h3>
               <p className="pc-desc">{p.desc}</p>

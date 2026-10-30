@@ -185,7 +185,11 @@ export default function Home() {
 
       {/* ===== SECURITY ===== */}
       <section id="security" className="section">
-        <SectionTitle n="02" label="Security">the <em>security</em> side</SectionTitle>
+        <div className="section-label mono reveal">
+          <span>(02)</span>
+          <span className="section-label-line" />
+          <span>Security</span>
+        </div>
         <p className="section-lede reveal">
           Security is where I feel at home: hardening systems, watching the logs, and rehearsing for the day things go wrong.
         </p>
