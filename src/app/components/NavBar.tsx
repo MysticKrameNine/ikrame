@@ -6,7 +6,6 @@ import { Compass, Gamepad } from "./Icons";
 const LINKS = [
   { id: "home", label: "Home" },
   { id: "about", label: "About" },
-  { id: "security", label: "Security" },
   { id: "experience", label: "Experience" },
   { id: "projects", label: "Projects" },
   { id: "services", label: "Services" },
