@@ -318,12 +318,7 @@ export default function CredentialOrbit() {
               <strong>{active.name}</strong>
               <p>{active.detail}</p>
             </div>
-          ) : (
-            <>
-              <span className="oc-title">trusted by <em>France</em></span>
-              <span className="oc-sub mono">drag to spin · hover a planet</span>
-            </>
-          )}
+          ) : null}
         </div>
 
         {CREDENTIALS.map((c, i) => (
