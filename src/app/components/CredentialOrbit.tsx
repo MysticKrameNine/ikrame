@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
 
 /**
- * A little solar system of credentials: a small star in the middle, each credential is a planet
+ * A little solar system of credentials: a small, realistic sun in the middle, each credential is a planet
  * on its own tilted orbit (inner ones go faster), lit from the sun, passing behind it, with an
  * asteroid belt. Drag (or swipe) to spin the whole system; hover / tap a planet to read it.
  */
@@ -71,7 +71,7 @@ export default function CredentialOrbit() {
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // star canvas: room for the glow and flares
-      const hr = w < 600 ? 12 : 16;
+      const hr = w < 600 ? 13 : 19;
       holeR = hr;
       HW = HH = Math.round(hr * 7);
       gcan.width = HW * dpr;
@@ -83,30 +83,66 @@ export default function CredentialOrbit() {
     let holeR = 32, HW = 270, HH = 160;
     resize();
 
-    // just a small, quiet star: a bright point with a soft halo and a gentle twinkle
+    // a small, realistic sun: granulated photosphere, limb darkening, a faint warm corona
+    const gran = document.createElement("canvas");
+    const GS = 128;
+    gran.width = gran.height = GS;
+    {
+      const g = gran.getContext("2d")!;
+      const img = g.createImageData(GS, GS);
+      // a few octaves of cheap value noise -> convection cells
+      const rnd = (x: number, y: number) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
+      const smooth = (x: number, y: number) => {
+        const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+        const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+        const a = rnd(xi, yi), b2 = rnd(xi + 1, yi), c = rnd(xi, yi + 1), d = rnd(xi + 1, yi + 1);
+        return a + (b2 - a) * u + (c - a) * v + (a - b2 - c + d) * u * v;
+      };
+      for (let y = 0; y < GS; y++)
+        for (let x = 0; x < GS; x++) {
+          const n = smooth(x / 4, y / 4) * 0.6 + smooth(x / 2, y / 2) * 0.3 + smooth(x, y) * 0.1;
+          const k = (y * GS + x) * 4;
+          const v = Math.round(n * 255);
+          img.data[k] = 255; img.data[k + 1] = 200 + Math.round(n * 55); img.data[k + 2] = 120 + Math.round(n * 80);
+          img.data[k + 3] = Math.round(40 + (1 - n) * 70) * (v > 0 ? 1 : 1);
+        }
+      g.putImageData(img, 0, 0);
+    }
     let st = 0;
     const drawGlobe = (dt: number) => {
       const R = holeR, cx = HW / 2, cy = HH / 2;
       st += dt;
       gtx.clearRect(0, 0, HW, HH);
-      const tw = 0.85 + Math.sin(st * 2.1) * 0.1 + Math.sin(st * 5.3) * 0.05;
-      const halo = gtx.createRadialGradient(cx, cy, 0, cx, cy, R * 2.2);
-      halo.addColorStop(0, `rgba(255,255,255,${0.55 * tw})`);
-      halo.addColorStop(0.25, `rgba(207,250,254,${0.2 * tw})`);
-      halo.addColorStop(1, "rgba(207,250,254,0)");
-      gtx.fillStyle = halo;
-      gtx.beginPath(); gtx.arc(cx, cy, R * 2.2, 0, Math.PI * 2); gtx.fill();
-      // four-point twinkle
-      gtx.fillStyle = `rgba(255,255,255,${0.9 * tw})`;
-      const L = R * 1.6 * tw, Wd = R * 0.12;
-      gtx.beginPath();
-      gtx.moveTo(cx, cy - L); gtx.quadraticCurveTo(cx + Wd, cy - Wd, cx + L, cy);
-      gtx.quadraticCurveTo(cx + Wd, cy + Wd, cx, cy + L);
-      gtx.quadraticCurveTo(cx - Wd, cy + Wd, cx - L, cy);
-      gtx.quadraticCurveTo(cx - Wd, cy - Wd, cx, cy - L);
-      gtx.fill();
-      gtx.fillStyle = "#ffffff";
-      gtx.beginPath(); gtx.arc(cx, cy, R * 0.22, 0, Math.PI * 2); gtx.fill();
+      // faint corona
+      const cor = gtx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 2.6);
+      cor.addColorStop(0, "rgba(255,214,150,0.32)");
+      cor.addColorStop(0.35, "rgba(255,190,110,0.10)");
+      cor.addColorStop(1, "rgba(255,190,110,0)");
+      gtx.fillStyle = cor;
+      gtx.beginPath(); gtx.arc(cx, cy, R * 2.6, 0, Math.PI * 2); gtx.fill();
+      // photosphere
+      const body = gtx.createRadialGradient(cx, cy, 0, cx, cy, R);
+      body.addColorStop(0, "#fffaf0");
+      body.addColorStop(0.55, "#ffe6b0");
+      body.addColorStop(0.85, "#ffc266");
+      body.addColorStop(1, "#f29a38");
+      gtx.fillStyle = body;
+      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
+      // granulation, drifting very slowly with the sun's rotation
+      gtx.save();
+      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.clip();
+      gtx.globalCompositeOperation = "multiply";
+      gtx.globalAlpha = 0.55;
+      gtx.translate(cx, cy); gtx.rotate(st * 0.02);
+      gtx.drawImage(gran, -R * 1.5, -R * 1.5, R * 3, R * 3);
+      gtx.restore();
+      // limb darkening: the edge of a real star is dimmer and redder
+      const limb = gtx.createRadialGradient(cx, cy, R * 0.45, cx, cy, R);
+      limb.addColorStop(0, "rgba(180,70,10,0)");
+      limb.addColorStop(0.8, "rgba(180,70,10,0.18)");
+      limb.addColorStop(1, "rgba(150,50,5,0.5)");
+      gtx.fillStyle = limb;
+      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
