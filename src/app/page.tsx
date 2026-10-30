@@ -7,7 +7,6 @@ import OrbitSystem from "./components/OrbitSystem";
 import ProjectsFloat from "./components/ProjectsFloat";
 import SecurityTerminal from "./components/SecurityTerminal";
 import CredentialOrbit from "./components/CredentialOrbit";
-import BookPages from "./components/BookPages";
 import { drawGirl } from "./components/draw";
 import {
   Mail, Github, Linkedin, Compass, Gamepad, Globe, Phone, Shield, Clipboard, Wrench,
@@ -322,7 +321,6 @@ export default function Home() {
           </div>
         </div>
 
-        <BookPages />
 
         <h3 className="sub-title reveal">art</h3>
         <ArtGallery />
