@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
 
 /**
- * A little solar system of credentials: a small pink star in the middle, each credential is a planet
+ * A little solar system of credentials: a small star in the middle, each credential is a planet
  * on its own tilted orbit (inner ones go faster), lit from the sun, passing behind it, with an
  * asteroid belt. Drag (or swipe) to spin the whole system; hover / tap a planet to read it.
  */
@@ -71,7 +71,7 @@ export default function CredentialOrbit() {
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // star canvas: room for the glow and flares
-      const hr = w < 600 ? 16 : 24;
+      const hr = w < 600 ? 12 : 16;
       holeR = hr;
       HW = HH = Math.round(hr * 7);
       gcan.width = HW * dpr;
@@ -83,89 +83,30 @@ export default function CredentialOrbit() {
     let holeR = 32, HW = 270, HH = 160;
     resize();
 
-    // a small pink star: white-hot core, rosy photosphere, soft breathing corona and a few thin flares
-    const flares = Array.from({ length: 14 }, (_, i) => ({
-      a: (i / 14) * Math.PI * 2 + Math.random() * 0.3,
-      len: 1.5 + Math.random() * 1.1,
-      sp: 0.3 + Math.random() * 0.8,
-      ph: Math.random() * 6,
-    }));
+    // just a small, quiet star: a bright point with a soft halo and a gentle twinkle
     let st = 0;
     const drawGlobe = (dt: number) => {
       const R = holeR, cx = HW / 2, cy = HH / 2;
       st += dt;
       gtx.clearRect(0, 0, HW, HH);
-      const breathe = 1 + Math.sin(st * 1.3) * 0.04;
-      // wide soft glow
-      const halo = gtx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R * 3.4 * breathe);
-      halo.addColorStop(0, "rgba(251,182,206,0.55)");
-      halo.addColorStop(0.35, "rgba(244,114,182,0.18)");
-      halo.addColorStop(1, "rgba(244,114,182,0)");
+      const tw = 0.85 + Math.sin(st * 2.1) * 0.1 + Math.sin(st * 5.3) * 0.05;
+      const halo = gtx.createRadialGradient(cx, cy, 0, cx, cy, R * 2.2);
+      halo.addColorStop(0, `rgba(255,255,255,${0.55 * tw})`);
+      halo.addColorStop(0.25, `rgba(207,250,254,${0.2 * tw})`);
+      halo.addColorStop(1, "rgba(207,250,254,0)");
       gtx.fillStyle = halo;
-      gtx.beginPath(); gtx.arc(cx, cy, R * 3.4 * breathe, 0, Math.PI * 2); gtx.fill();
-      // corona flares, slowly turning and breathing
-      gtx.globalCompositeOperation = "lighter";
-      for (const f of flares) {
-        const a = f.a + st * 0.05;
-        const l = R * (1 + (f.len - 1) * (0.75 + 0.25 * Math.sin(st * f.sp + f.ph)));
-        const g = gtx.createLinearGradient(cx + Math.cos(a) * R * 0.9, cy + Math.sin(a) * R * 0.9, cx + Math.cos(a) * l, cy + Math.sin(a) * l);
-        g.addColorStop(0, "rgba(253,164,200,0.22)");
-        g.addColorStop(1, "rgba(253,164,200,0)");
-        gtx.strokeStyle = g;
-        gtx.lineWidth = R * 0.22;
-        gtx.lineCap = "round";
-        gtx.beginPath();
-        gtx.moveTo(cx + Math.cos(a) * R * 0.9, cy + Math.sin(a) * R * 0.9);
-        gtx.quadraticCurveTo(cx + Math.cos(a + 0.12) * (R + l) / 2, cy + Math.sin(a + 0.12) * (R + l) / 2, cx + Math.cos(a) * l, cy + Math.sin(a) * l);
-        gtx.stroke();
-      }
-      gtx.globalCompositeOperation = "source-over";
-      // photosphere
-      const body = gtx.createRadialGradient(cx - R * 0.2, cy - R * 0.25, R * 0.05, cx, cy, R);
-      body.addColorStop(0, "#fffafc");
-      body.addColorStop(0.35, "#fde2ee");
-      body.addColorStop(0.75, "#f9a8d4");
-      body.addColorStop(1, "#ec4899");
-      gtx.fillStyle = body;
-      gtx.shadowColor = "rgba(244,114,182,0.9)";
-      gtx.shadowBlur = R * 0.9;
-      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
-      gtx.shadowBlur = 0;
-      // shimmering surface
-      gtx.save();
-      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.clip();
-      gtx.globalCompositeOperation = "lighter";
-      for (let i = 0; i < 7; i++) {
-        const a = i * 0.9 + st * (0.15 + i * 0.03);
-        const rr = R * (0.25 + (i % 3) * 0.2);
-        const x = cx + Math.cos(a) * rr, y = cy + Math.sin(a * 1.3) * rr;
-        const sp = gtx.createRadialGradient(x, y, 0, x, y, R * 0.45);
-        sp.addColorStop(0, "rgba(255,255,255,0.18)");
-        sp.addColorStop(1, "rgba(255,255,255,0)");
-        gtx.fillStyle = sp;
-        gtx.beginPath(); gtx.arc(x, y, R * 0.45, 0, Math.PI * 2); gtx.fill();
-      }
-      gtx.restore();
-      // limb darkening for a round, 3D feel
-      const limb = gtx.createRadialGradient(cx, cy, R * 0.6, cx, cy, R);
-      limb.addColorStop(0, "rgba(190,24,93,0)");
-      limb.addColorStop(1, "rgba(190,24,93,0.35)");
-      gtx.fillStyle = limb;
-      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
-      // thin starburst spikes
-      gtx.globalCompositeOperation = "lighter";
-      for (const [ang, ln] of [[0, 3.2], [Math.PI / 2, 2.6]] as const) {
-        const L = R * ln * breathe;
-        const dx = Math.cos(ang) * L, dy = Math.sin(ang) * L;
-        const g = gtx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
-        g.addColorStop(0, "rgba(255,230,242,0)");
-        g.addColorStop(0.5, "rgba(255,240,248,0.55)");
-        g.addColorStop(1, "rgba(255,230,242,0)");
-        gtx.strokeStyle = g;
-        gtx.lineWidth = 1.1;
-        gtx.beginPath(); gtx.moveTo(cx - dx, cy - dy); gtx.lineTo(cx + dx, cy + dy); gtx.stroke();
-      }
-      gtx.globalCompositeOperation = "source-over";
+      gtx.beginPath(); gtx.arc(cx, cy, R * 2.2, 0, Math.PI * 2); gtx.fill();
+      // four-point twinkle
+      gtx.fillStyle = `rgba(255,255,255,${0.9 * tw})`;
+      const L = R * 1.6 * tw, Wd = R * 0.12;
+      gtx.beginPath();
+      gtx.moveTo(cx, cy - L); gtx.quadraticCurveTo(cx + Wd, cy - Wd, cx + L, cy);
+      gtx.quadraticCurveTo(cx + Wd, cy + Wd, cx, cy + L);
+      gtx.quadraticCurveTo(cx - Wd, cy + Wd, cx - L, cy);
+      gtx.quadraticCurveTo(cx - Wd, cy - Wd, cx, cy - L);
+      gtx.fill();
+      gtx.fillStyle = "#ffffff";
+      gtx.beginPath(); gtx.arc(cx, cy, R * 0.22, 0, Math.PI * 2); gtx.fill();
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
