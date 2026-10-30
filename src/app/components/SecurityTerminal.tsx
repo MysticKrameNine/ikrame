@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
+import { LANGUAGES } from "../data/career";
 
 type Line = { kind: "cmd" | "out" | "ok" | "wip" | "smile"; text: string };
 
@@ -85,12 +85,7 @@ export default function SecurityTerminal() {
         <span className="term-scan" aria-hidden="true" />
       </div>
 
-      <div className="creds reveal">
-        {CREDENTIALS.map((c) => <Badge key={c.id} c={c} />)}
-      </div>
-      <a className="creds-more mono reveal" href={RESUME_URL} target="_blank" rel="noreferrer">
-        all my certifications are on my resume →
-      </a>
+
     </div>
   );
 }
@@ -102,28 +97,6 @@ function TermLine({ l }: { l: Line }) {
     <div className={`t-line t-${l.kind}`}>
       {mark ? <span className="t-mark">{mark}</span> : null}
       {l.text}
-    </div>
-  );
-}
-
-function Badge({ c }: { c: Credential }) {
-  const [hasLogo, setHasLogo] = useState(!!c.logo);
-  const initials = c.name.replace(/[^A-Za-z]/g, "").slice(0, 2).toUpperCase();
-  return (
-    <div className={`cred${c.status === "progress" ? " is-wip" : ""}`}>
-      <div className="cred-logo">
-        {hasLogo && c.logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.logo} alt={`${c.name} logo`} onError={() => setHasLogo(false)} />
-        ) : (
-          <span className="cred-mono">{initials}</span>
-        )}
-      </div>
-      <div className="cred-text">
-        <strong>{c.name}</strong>
-        <span>{c.detail}</span>
-      </div>
-      {c.status === "progress" ? <span className="cred-tag mono">in progress</span> : null}
     </div>
   );
 }

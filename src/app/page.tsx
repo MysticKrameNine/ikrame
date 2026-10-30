@@ -6,6 +6,7 @@ import ArtGallery from "./components/ArtGallery";
 import OrbitSystem from "./components/OrbitSystem";
 import ProjectsFloat from "./components/ProjectsFloat";
 import SecurityTerminal from "./components/SecurityTerminal";
+import CredentialOrbit from "./components/CredentialOrbit";
 import { drawGirl } from "./components/draw";
 import {
   Mail, Github, Linkedin, Compass, Gamepad, Globe, Phone, Shield, Clipboard, Wrench,
@@ -188,6 +189,7 @@ export default function Home() {
         <p className="section-lede reveal">
           Security is where I feel at home: hardening systems, watching the logs, and rehearsing for the day things go wrong.
         </p>
+        <CredentialOrbit />
         <SecurityTerminal />
       </section>
 

@@ -285,15 +285,26 @@ export const LINKEDIN = "https://www.linkedin.com/in/ikrame-8429bb1a8/";
 // Logos: drop the official files in /public/logos/ with these names (svg or png) and they show up
 // automatically, e.g. /public/logos/secnumedu.svg, /public/logos/cisco.svg ...
 // Until a file exists, a clean monogram badge is shown instead.
-export type Credential = { id: string; name: string; detail: string; status?: "progress"; logo?: string };
+export type Credential = {
+  id: string;
+  name: string;
+  detail: string;
+  kind: "cert" | "mission" | "skill" | "company";
+  status?: "progress";
+  /** official logo file in /public/logos (svg or png). Missing file = elegant seal instead. */
+  logo?: string;
+  icon?: "shield" | "radar";
+};
 
 export const CREDENTIALS: Credential[] = [
-  { id: "secnumedu", name: "SecNumEdu", detail: "ANSSI-certified engineering degree", logo: "/logos/secnumedu.svg" },
-  { id: "cisco", name: "Cisco", detail: "Networking certification", logo: "/logos/cisco.svg" },
-  { id: "oscp", name: "OSCP", detail: "OffSec · in progress", status: "progress", logo: "/logos/oscp.svg" },
-  { id: "jpmorgan", name: "J.P. Morgan", detail: "Cybersecurity certification", logo: "/logos/jpmorgan.svg" },
-  { id: "microsoft", name: "Microsoft", detail: "Azure data-center operations", logo: "/logos/microsoft.svg" },
-  { id: "proguard", name: "ProGuard", detail: "Android app protection · Guardsquare", logo: "/logos/proguard.svg" },
+  { id: "secnumedu", name: "SecNumEdu", kind: "cert", detail: "Engineering degree certified by the ANSSI", logo: "/logos/secnumedu" },
+  { id: "comcyber", name: "COMCYBER", kind: "mission", detail: "Crisis simulation exercises with the French Cyber Command", icon: "shield", logo: "/logos/comcyber" },
+  { id: "siem", name: "SIEM", kind: "skill", detail: "Log collection, correlation & detection · ELK, Grafana", icon: "radar" },
+  { id: "oscp", name: "OSCP", kind: "cert", status: "progress", detail: "Offensive Security Certified Professional", logo: "/logos/oscp" },
+  { id: "cisco", name: "Cisco", kind: "cert", detail: "Networking certification", logo: "/logos/cisco" },
+  { id: "jpmorgan", name: "J.P. Morgan", kind: "cert", detail: "Cybersecurity certification", logo: "/logos/jpmorgan" },
+  { id: "microsoft", name: "Microsoft", kind: "company", detail: "Azure data-center operations · Paris", logo: "/logos/microsoft" },
+  { id: "proguard", name: "ProGuard", kind: "company", detail: "Android app protection · Guardsquare, Leuven", logo: "/logos/proguard" },
 ];
 
 export const LANGUAGES = [
