@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
-import { LAND_ROWS, EU_BOX, EU_ROWS } from "../data/landDots";
 
 /**
  * A little solar system of credentials: a glowing sun in the middle, each credential is a planet
@@ -14,27 +13,6 @@ import { LAND_ROWS, EU_BOX, EU_ROWS } from "../data/landDots";
 const ORBIT: Record<string, number> = { secnumedu: 0, siem: 0, keycloak: 0, anssi: 1, comcyber: 1, cisco: 1, oscp: 2, microsoft: 2, hospitals: 2, jpmorgan: 3, proguard: 3 };
 const SIZE: Record<string, number> = { anssi: 94, secnumedu: 90, comcyber: 94, hospitals: 92, keycloak: 76, siem: 70, oscp: 84, cisco: 76, microsoft: 84, jpmorgan: 80, proguard: 82 };
 
-// land dots (lon, lat), with a finer grid for Europe so France reads clearly
-const DOTS = (() => {
-  const out: number[] = [];
-  for (const row of LAND_ROWS) {
-    const [lat, n, ...runs] = row;
-    for (let r = 0; r < runs.length; r += 2)
-      for (let i = runs[r]; i < runs[r] + runs[r + 1]; i++) {
-        const lon = -180 + ((i + 0.5) * 360) / n;
-        if (lon > EU_BOX.lon0 && lon < EU_BOX.lon1 && lat > EU_BOX.lat0 && lat < EU_BOX.lat1) continue;
-        out.push(lon, lat);
-      }
-  }
-  for (const row of EU_ROWS) {
-    const [lat, ...runs] = row;
-    for (let r = 0; r < runs.length; r += 2)
-      for (let i = runs[r]; i < runs[r] + runs[r + 1]; i++) out.push(EU_BOX.lon0 + (i + 0.5) * EU_BOX.step, lat);
-  }
-  return new Float32Array(out);
-})();
-const inFrance = (lon: number, lat: number) =>
-  lat > 42.3 && lat < 51.1 && lon > -4.9 && lon < 8.3 && !(lat > 49.6 && lon < -1.9) && !(lat < 43.6 && lon > 3.3 && lon < 6.2 && lat < 43.2);
 const ORBIT_R = [0.4, 0.58, 0.77, 0.98]; // fraction of the max horizontal radius
 const BELT_R = 0.875;
 const TILT = 0.4; // vertical squash of the orbits (3D tilt)
@@ -92,73 +70,91 @@ export default function CredentialOrbit() {
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const gr = w < 600 ? 56 : 82;
-      gcan.width = gr * 2 * dpr;
-      gcan.height = gr * 2 * dpr;
-      gcan.style.width = gr * 2 + "px";
-      gcan.style.height = gr * 2 + "px";
+      // black hole canvas: wide enough for the accretion disc
+      const hr = w < 600 ? 26 : 40;
+      holeR = hr;
+      HW = Math.round(hr * 8.4); HH = Math.round(hr * 5);
+      gcan.width = HW * dpr;
+      gcan.height = HH * dpr;
+      gcan.style.width = HW + "px";
+      gcan.style.height = HH + "px";
       gtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      globeR = gr;
     };
-    let globeR = 82;
+    let holeR = 32, HW = 270, HH = 160;
     resize();
 
-    // the Earth in the middle, turned towards France
-    const drawGlobe = () => {
-      const r = globeR - 6, c = globeR;
-      gtx.clearRect(0, 0, c * 2, c * 2);
-      const lon0 = (2.5 + Math.sin(t * 1.6) * 22) * (Math.PI / 180); // always facing France
-      const lat0 = 30 * (Math.PI / 180);
-      // atmosphere
-      const atm = gtx.createRadialGradient(c, c, r * 0.9, c, c, r + 6);
-      atm.addColorStop(0, "rgba(103,232,249,0.0)");
-      atm.addColorStop(0.6, "rgba(103,232,249,0.35)");
-      atm.addColorStop(1, "rgba(103,232,249,0)");
-      gtx.fillStyle = atm;
-      gtx.beginPath(); gtx.arc(c, c, r + 6, 0, Math.PI * 2); gtx.fill();
-      // ocean
-      const sea = gtx.createRadialGradient(c - r * 0.35, c - r * 0.35, r * 0.1, c, c, r);
-      sea.addColorStop(0, "#1c3b6e");
-      sea.addColorStop(1, "#08122a");
-      gtx.fillStyle = sea;
-      gtx.beginPath(); gtx.arc(c, c, r, 0, Math.PI * 2); gtx.fill();
-      const sl0 = Math.sin(lat0), cl0 = Math.cos(lat0);
-      for (let i = 0; i < DOTS.length; i += 2) {
-        const lon = DOTS[i], lat = DOTS[i + 1];
-        const la = lat * (Math.PI / 180), lo = lon * (Math.PI / 180) - lon0;
-        const cosc = sl0 * Math.sin(la) + cl0 * Math.cos(la) * Math.cos(lo);
-        if (cosc <= 0) continue;
-        const x = c + r * Math.cos(la) * Math.sin(lo);
-        const y = c - r * (cl0 * Math.sin(la) - sl0 * Math.cos(la) * Math.cos(lo));
-        const fr = inFrance(lon, lat);
-        gtx.globalAlpha = fr ? 1 : 0.25 + cosc * 0.55;
-        gtx.fillStyle = fr ? "#6ee7b7" : "#94a3b8";
-        const sz = fr ? 1.5 : 1.05;
-        gtx.fillRect(x - sz / 2, y - sz / 2, sz, sz);
+    // the black hole: lensed photon ring, event horizon, swirling accretion disc (Doppler-bright on one side)
+    const motes = Array.from({ length: 900 }, () => ({
+      r: 1.45 + Math.pow(Math.random(), 1.6) * 2.6,
+      a: Math.random() * Math.PI * 2,
+      s: 0.5 + Math.random() * 1.3,
+      b: 0.35 + Math.random() * 0.65,
+    }));
+    const SQ = 0.24; // how flat we see the disc
+    const discBand = (front: boolean) => {
+      const R = holeR, cx = HW / 2, cy = HH / 2;
+      gtx.save();
+      gtx.beginPath();
+      if (front) gtx.rect(0, cy, HW, HH); else gtx.rect(0, 0, HW, cy);
+      gtx.clip();
+      // smooth glow of the disc
+      gtx.save();
+      gtx.translate(cx, cy); gtx.scale(1, SQ);
+      const g = gtx.createRadialGradient(0, 0, R * 1.25, 0, 0, R * 4.1);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.06, "rgba(255,246,225,0.85)");
+      g.addColorStop(0.22, "rgba(253,214,140,0.55)");
+      g.addColorStop(0.5, "rgba(103,232,249,0.22)");
+      g.addColorStop(1, "rgba(59,130,246,0)");
+      gtx.fillStyle = g;
+      gtx.beginPath(); gtx.arc(0, 0, R * 4.1, 0, Math.PI * 2); gtx.fill();
+      gtx.restore();
+      // swirling streaks
+      gtx.globalCompositeOperation = "lighter";
+      for (const m of motes) {
+        const sinA = Math.sin(m.a);
+        if (front ? sinA < 0 : sinA >= 0) continue;
+                const dop = 0.45 + 0.55 * (0.5 - 0.5 * Math.cos(m.a)); // left side (coming at us) brighter
+        const heat = Math.max(0, 1 - (m.r - 1.45) / 2.6);
+        gtx.globalAlpha = m.b * dop * (0.22 + heat * 0.5);
+        gtx.strokeStyle = heat > 0.55 ? "#fff3d6" : heat > 0.25 ? "#fcd34d" : "#67e8f9";
+        gtx.lineWidth = 0.4 + heat * 0.7;
+        const len = 0.12 + heat * 0.22;
+        gtx.beginPath();
+        gtx.ellipse(cx, cy, m.r * R, m.r * R * SQ, 0, m.a - len, m.a);
+        gtx.stroke();
       }
       gtx.globalAlpha = 1;
-      // a pulse over Paris + hospitals glowing across France
-      const pla = 48.85 * (Math.PI / 180), plo = 2.35 * (Math.PI / 180) - lon0;
-      if (sl0 * Math.sin(pla) + cl0 * Math.cos(pla) * Math.cos(plo) > 0) {
-        const px = c + r * Math.cos(pla) * Math.sin(plo);
-        const py = c - r * (cl0 * Math.sin(pla) - sl0 * Math.cos(pla) * Math.cos(plo));
-        const ph = (t * 3) % 1;
-        gtx.strokeStyle = `rgba(110,231,183,${1 - ph})`;
-        gtx.lineWidth = 1.5;
-        gtx.beginPath(); gtx.arc(px, py, 3 + ph * 14, 0, Math.PI * 2); gtx.stroke();
-        gtx.fillStyle = "#ffffff";
-        gtx.beginPath(); gtx.arc(px, py, 2.2, 0, Math.PI * 2); gtx.fill();
-      }
-      // shading: lit from the top-left
-      const sh = gtx.createRadialGradient(c - r * 0.4, c - r * 0.45, r * 0.2, c, c, r * 1.05);
-      sh.addColorStop(0, "rgba(255,255,255,0.08)");
-      sh.addColorStop(0.7, "rgba(0,0,0,0)");
-      sh.addColorStop(1, "rgba(0,0,0,0.45)");
-      gtx.fillStyle = sh;
-      gtx.beginPath(); gtx.arc(c, c, r, 0, Math.PI * 2); gtx.fill();
-      gtx.strokeStyle = "rgba(165,243,252,0.6)";
-      gtx.lineWidth = 1;
-      gtx.beginPath(); gtx.arc(c, c, r, 0, Math.PI * 2); gtx.stroke();
+      gtx.globalCompositeOperation = "source-over";
+      gtx.restore();
+    };
+    const drawGlobe = (dt: number) => {
+      const R = holeR, cx = HW / 2, cy = HH / 2;
+      gtx.clearRect(0, 0, HW, HH);
+      for (const m of motes) m.a += (dt * m.s * 1.6) / Math.pow(m.r, 1.5);
+      // far side of the disc
+      discBand(false);
+      // the far side bent over the top and under the bottom (gravitational lensing)
+      const lens = gtx.createRadialGradient(cx, cy, R * 1.0, cx, cy, R * 1.75);
+      lens.addColorStop(0, "rgba(255,248,230,0.95)");
+      lens.addColorStop(0.18, "rgba(253,214,140,0.55)");
+      lens.addColorStop(0.5, "rgba(103,232,249,0.18)");
+      lens.addColorStop(1, "rgba(103,232,249,0)");
+      gtx.fillStyle = lens;
+      gtx.beginPath(); gtx.ellipse(cx, cy, R * 1.75, R * 1.62, 0, 0, Math.PI * 2); gtx.fill();
+      // event horizon
+      gtx.fillStyle = "#010208";
+      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
+      // photon ring, flickering a little
+      const flick = 0.75 + Math.sin(t * 9) * 0.08 + Math.sin(t * 23) * 0.05;
+      gtx.strokeStyle = `rgba(255,244,214,${flick})`;
+      gtx.lineWidth = 1.4;
+      gtx.shadowColor = "rgba(253,214,140,0.9)";
+      gtx.shadowBlur = 10;
+      gtx.beginPath(); gtx.arc(cx, cy, R * 1.04, 0, Math.PI * 2); gtx.stroke();
+      gtx.shadowBlur = 0;
+      // near side of the disc, crossing in front of the hole
+      discBand(true);
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
@@ -175,7 +171,7 @@ export default function CredentialOrbit() {
           if (!reduced && !paused) t += dt * 0.12;
         }
         draw();
-        drawGlobe();
+        drawGlobe(dt);
       }
       raf = requestAnimationFrame(frame);
     };
@@ -305,7 +301,6 @@ export default function CredentialOrbit() {
         {/* the Earth, turned towards France */}
         <div className="oc-earth" aria-hidden="true">
           <canvas ref={globeRef} />
-          <span className="oc-earth-label mono">serving France · 24/7</span>
         </div>
 
         {/* label under the sun, or the selected planet's card */}

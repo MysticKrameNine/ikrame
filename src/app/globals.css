@@ -1205,7 +1205,7 @@ html.is-loading { overflow: hidden; }
 .oc-sun { display: none; }
 .oc-stage { background: radial-gradient(40% 40% at 50% 50%, rgba(103, 232, 249, 0.08), transparent 70%); }
 .oc-earth { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 120; pointer-events: none; display: flex; flex-direction: column; align-items: center; }
-.oc-earth canvas { display: block; filter: drop-shadow(0 0 24px rgba(103, 232, 249, 0.35)); }
+.oc-earth canvas { display: block; }
 .oc-earth-label { margin-top: 2px; font-size: 0.64rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--term-green); text-shadow: 0 0 8px rgba(110, 231, 183, 0.6); }
 
 /* real logos on the planets */
@@ -1256,7 +1256,7 @@ html.is-loading { overflow: hidden; }
 .slide-card.pc:hover .pc-open svg { transform: translate(2px, -2px); }
 .slide-card.pc:active { transform: translateY(-2px) scale(0.99); }
 .slide-card.pc .chip { font-size: 0.7rem; padding: 4px 9px; }
-@media (min-width: 761px) { #security .oc-stage { margin-top: -150px; } }
+@media (min-width: 761px) { #about .oc-stage { margin-top: -60px; } }
 
 /* ===================== projects v4: centred static grid ===================== */
 .pgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 0 auto; }
