@@ -190,9 +190,6 @@ export default function Home() {
           <span className="section-label-line" />
           <span>Security</span>
         </div>
-        <p className="section-lede reveal">
-          Security is where I feel at home: hardening systems, watching the logs, and rehearsing for the day things go wrong.
-        </p>
         <CredentialOrbit />
         <SecurityTerminal />
       </section>
