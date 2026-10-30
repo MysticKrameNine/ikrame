@@ -942,3 +942,70 @@ html.is-loading { overflow: hidden; }
 /* keyframes used by the original wand cursor */
 @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
 @keyframes pulse { 50% { opacity: 0.5; } }
+
+/* ===================== hacker vibes ===================== */
+:root { --term-green: #6ee7b7; }
+
+/* hero status line */
+.hero-status {
+  display: inline-flex; align-items: center; gap: 0.55rem; margin: 1.1rem auto 0; padding: 0.45rem 0.9rem;
+  font-size: 0.78rem; letter-spacing: 0.02em; color: var(--term-green);
+  border: 1px solid rgba(110, 231, 183, 0.28); border-radius: 999px; background: rgba(6, 20, 20, 0.45);
+  opacity: 0; transform: translateY(10px); transition: opacity 0.7s var(--ease) 0.15s, transform 0.7s var(--ease) 0.15s;
+}
+.hero-status.is-in { opacity: 1; transform: none; }
+.hs-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--term-green); box-shadow: 0 0 8px var(--term-green); animation: pulse 1.8s ease-in-out infinite; }
+.hs-caret { width: 7px; height: 1em; background: var(--term-green); margin-left: 2px; animation: tblink 1s steps(1) infinite; }
+@media (max-width: 560px) { .hero-status { font-size: 0.68rem; text-align: left; border-radius: 14px; } }
+
+/* terminal */
+.term {
+  position: relative; overflow: hidden; border-radius: 14px; border: 1px solid rgba(110, 231, 183, 0.22);
+  background: linear-gradient(180deg, rgba(4, 12, 18, 0.92), rgba(6, 14, 24, 0.92));
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.9), 0 0 60px -30px rgba(110, 231, 183, 0.45);
+}
+.term-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-bottom: 1px solid rgba(110, 231, 183, 0.14); background: rgba(255, 255, 255, 0.02); }
+.term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #334155; }
+.term-bar i:nth-child(1) { background: #fb7185; } .term-bar i:nth-child(2) { background: #fbbf24; } .term-bar i:nth-child(3) { background: #6ee7b7; }
+.term-bar span { margin-left: 8px; font-size: 0.74rem; color: #64748b; }
+.term-body { padding: 18px 20px 22px; min-height: 320px; font-size: 0.9rem; line-height: 1.75; color: #cbd5e1; }
+.t-line { white-space: pre-wrap; }
+.t-prompt { color: var(--cyan); }
+.t-ok { color: #e2e8f0; } .t-ok .t-mark { color: var(--term-green); }
+.t-wip { color: #fde68a; } .t-wip .t-mark { color: #fbbf24; }
+.t-smile { color: #f9a8c9; } .t-smile .t-mark { color: #f9a8c9; }
+.t-mark { display: inline-block; width: 1.4em; }
+.t-out { color: #94a3b8; }
+.t-caret { display: inline-block; width: 8px; height: 1.05em; vertical-align: -2px; background: var(--term-green); animation: tblink 1s steps(1) infinite; }
+@keyframes tblink { 50% { opacity: 0; } }
+.term-scan {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
+}
+.term-scan::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 80px; top: -80px;
+  background: linear-gradient(180deg, transparent, rgba(110, 231, 183, 0.06), transparent);
+  animation: tscan 6s linear infinite;
+}
+@keyframes tscan { to { top: 100%; } }
+@media (max-width: 560px) { .term-body { font-size: 0.78rem; padding: 14px; min-height: 360px; } }
+
+/* credential badges */
+.creds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+.cred {
+  position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid var(--line-2); background: rgba(15, 23, 42, 0.62); transition: border-color 0.3s, transform 0.3s var(--ease);
+}
+.cred:hover { border-color: rgba(110, 231, 183, 0.5); transform: translateY(-2px); }
+.cred-logo { flex: none; width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; background: #f8fafc; overflow: hidden; }
+.cred-logo img { width: 80%; height: 80%; object-fit: contain; }
+.cred-mono { font: 700 0.95rem/1 var(--mono); color: #0b1020; letter-spacing: -0.02em; }
+.cred-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cred-text strong { font: 600 0.95rem/1.2 var(--display); color: var(--ink); }
+.cred-text span { font-size: 0.78rem; color: var(--dim); }
+.cred.is-wip { border-style: dashed; border-color: rgba(251, 191, 36, 0.45); }
+.cred-tag { position: absolute; top: 8px; right: 10px; font-size: 0.62rem; color: #fbbf24; letter-spacing: 0.06em; text-transform: uppercase; }
+.creds-more { display: inline-block; margin-top: 14px; font-size: 0.8rem; color: var(--term-green); }
+.creds-more:hover { text-decoration: underline; }
+@media (max-width: 900px) { .creds { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .creds { grid-template-columns: 1fr; } }

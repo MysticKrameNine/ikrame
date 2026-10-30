@@ -5,6 +5,7 @@ import CareerGlobe from "./components/CareerGlobe";
 import ArtGallery from "./components/ArtGallery";
 import OrbitSystem from "./components/OrbitSystem";
 import ProjectsFloat from "./components/ProjectsFloat";
+import SecurityTerminal from "./components/SecurityTerminal";
 import { drawGirl } from "./components/draw";
 import {
   Mail, Github, Linkedin, Compass, Gamepad, Globe, Phone, Shield, Clipboard, Wrench,
@@ -128,6 +129,9 @@ export default function Home() {
           <p className={`hero-text${typed ? " is-in" : ""}`}>
             <b>Fascinated</b> by tech and clean user experiences.
           </p>
+          <p className={`hero-status mono${typed ? " is-in" : ""}`}>
+            <span className="hs-dot" /> ANSSI-certified engineer · SIEM · crisis simulations · OSCP in progress<span className="hs-caret" />
+          </p>
           <div className={`hero-cta${typed ? " is-in" : ""}`}>
             <a href={`mailto:${EMAIL}`} className="btn btn-ghost"><Mail /> Say hi!</a>
             <a href={GITHUB} target="_blank" rel="noreferrer" className="btn btn-ghost"><Github /> GitHub</a>
@@ -178,9 +182,18 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== SECURITY ===== */}
+      <section id="security" className="section">
+        <SectionTitle n="02" label="Security">the <em>security</em> side</SectionTitle>
+        <p className="section-lede reveal">
+          Security is where I feel at home: hardening systems, watching the logs, and rehearsing for the day things go wrong.
+        </p>
+        <SecurityTerminal />
+      </section>
+
       {/* ===== EXPERIENCE ===== */}
       <section id="experience" className="section">
-        <SectionTitle n="02" label="Experience">the <em>journey</em></SectionTitle>
+        <SectionTitle n="03" label="Experience">the <em>journey</em></SectionTitle>
         <p className="section-lede reveal">
           Spin the globe and ride along: every glowing city is a chapter of my career. Press play for career mode, or click a city.
         </p>
@@ -216,7 +229,7 @@ export default function Home() {
 
       {/* ===== PROJECTS ===== */}
       <section id="projects" className="section">
-        <SectionTitle n="03" label="Projects">pet <em>projects</em></SectionTitle>
+        <SectionTitle n="04" label="Projects">pet <em>projects</em></SectionTitle>
         <p className="section-lede reveal">Hand-picked work. The rest lives on my GitHub.</p>
         <div className="reveal">
           <ProjectsFloat projects={PROJECTS} />
@@ -228,7 +241,7 @@ export default function Home() {
 
       {/* ===== SERVICES ===== */}
       <section id="services" className="section">
-        <SectionTitle n="04" label="Services">how I can <em>help</em></SectionTitle>
+        <SectionTitle n="05" label="Services">how I can <em>help</em></SectionTitle>
         <p className="section-lede reveal">Advisory and delivery services focused on reliability, security, and measurable outcomes.</p>
         <div className="services">
           {SERVICES.map((s, i) => {
@@ -267,7 +280,7 @@ export default function Home() {
 
       {/* ===== CREATIVE: BOOK + ART ===== */}
       <section id="creative" className="section">
-        <SectionTitle n="05" label="Art"><em>art</em></SectionTitle>
+        <SectionTitle n="06" label="Art"><em>art</em></SectionTitle>
         <p className="section-lede reveal">
           The other side of the brain: writing, painting, sketching and 3D sculpting.
         </p>
@@ -312,7 +325,7 @@ export default function Home() {
 
       {/* ===== CONTACT ===== */}
       <section id="contact" className="section contact">
-        <SectionTitle n="06" label="Contact">get in <em>touch</em></SectionTitle>
+        <SectionTitle n="07" label="Contact">get in <em>touch</em></SectionTitle>
         
         <div className="reveal">
           <p className="section-lede">Open to software engineering roles across cloud/infra/dev-tools.</p>

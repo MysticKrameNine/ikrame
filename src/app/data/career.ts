@@ -280,3 +280,27 @@ export const ART = [
 export const EMAIL = "ikrame.spaces@gmail.com";
 export const GITHUB = "https://github.com/MysticKrameNine";
 export const LINKEDIN = "https://www.linkedin.com/in/ikrame-8429bb1a8/";
+
+// ---------- security credentials (the "hacker" section) ----------
+// Logos: drop the official files in /public/logos/ with these names (svg or png) and they show up
+// automatically, e.g. /public/logos/secnumedu.svg, /public/logos/cisco.svg ...
+// Until a file exists, a clean monogram badge is shown instead.
+export type Credential = { id: string; name: string; detail: string; status?: "progress"; logo?: string };
+
+export const CREDENTIALS: Credential[] = [
+  { id: "secnumedu", name: "SecNumEdu", detail: "ANSSI-certified engineering degree", logo: "/logos/secnumedu.svg" },
+  { id: "cisco", name: "Cisco", detail: "Networking certification", logo: "/logos/cisco.svg" },
+  { id: "oscp", name: "OSCP", detail: "OffSec · in progress", status: "progress", logo: "/logos/oscp.svg" },
+  { id: "jpmorgan", name: "J.P. Morgan", detail: "Cybersecurity certification", logo: "/logos/jpmorgan.svg" },
+  { id: "microsoft", name: "Microsoft", detail: "Azure data-center operations", logo: "/logos/microsoft.svg" },
+  { id: "proguard", name: "ProGuard", detail: "Android app protection · Guardsquare", logo: "/logos/proguard.svg" },
+];
+
+export const LANGUAGES = [
+  { name: "French", level: "fluent" },
+  { name: "English", level: "fluent" },
+  { name: "German", level: "a little" },
+];
+
+/** Where "all my certifications" points. Put your CV in /public/resume.pdf and set this to "/resume.pdf". */
+export const RESUME_URL = "https://www.linkedin.com/in/ikrame-8429bb1a8/";
