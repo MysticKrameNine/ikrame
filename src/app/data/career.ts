@@ -280,3 +280,45 @@ export const ART = [
 export const EMAIL = "ikrame.spaces@gmail.com";
 export const GITHUB = "https://github.com/MysticKrameNine";
 export const LINKEDIN = "https://www.linkedin.com/in/ikrame-8429bb1a8/";
+
+// ---------- security credentials (the "hacker" section) ----------
+// Logos: drop the official files in /public/logos/ with these names (svg or png) and they show up
+// automatically, e.g. /public/logos/secnumedu.svg, /public/logos/cisco.svg ...
+// Until a file exists, a clean monogram badge is shown instead.
+export type Credential = {
+  id: string;
+  name: string;
+  detail: string;
+  kind: "cert" | "mission" | "skill" | "company";
+  status?: "progress";
+  /** logo file in /public/logos (full path with extension). Missing file = engraved seal instead. */
+  logo?: string;
+  icon?: "shield" | "radar" | "code" | "cross" | "key";
+  /** round emblem that should fill the whole planet */
+  fill?: boolean;
+  /** logo sits on a dark background */
+  dark?: boolean;
+};
+
+export const CREDENTIALS: Credential[] = [
+  { id: "anssi", name: "ANSSI", kind: "cert", fill: true, detail: "French National Cybersecurity Agency · my engineering degree is certified by it", logo: "/logos/anssi.png" },
+  { id: "secnumedu", name: "SecNumEdu", kind: "cert", detail: "ANSSI label of my cybersecurity engineering degree", logo: "/logos/secnumedu.png" },
+  { id: "comcyber", name: "COMCYBER", kind: "mission", fill: true, detail: "Crisis simulation exercises with the French Cyber Command", logo: "/logos/comcyber.png" },
+  { id: "hospitals", name: "French hospitals", kind: "mission", detail: "Keeping high-availability systems running for hospitals across France, 24/7", icon: "cross" },
+  { id: "keycloak", name: "Keycloak", kind: "skill", detail: "Identity & access: Keycloak + Spring Security, OAuth2/JWT, RBAC", icon: "key" },
+  { id: "siem", name: "SIEM", kind: "skill", detail: "Log collection, correlation & detection · ELK, Grafana", icon: "radar" },
+  { id: "oscp", name: "OSCP", kind: "cert", status: "progress", detail: "Offensive Security Certified Professional" },
+  { id: "cisco", name: "Cisco", kind: "cert", detail: "Networking certification" },
+  { id: "jpmorgan", name: "J.P. Morgan", kind: "cert", detail: "Software Engineering certification", icon: "code" },
+  { id: "microsoft", name: "Microsoft", kind: "company", detail: "Azure data-center operations · Paris", logo: "/logos/microsoft.png" },
+  { id: "proguard", name: "ProGuard", kind: "company", dark: true, detail: "Android app protection · Guardsquare, Leuven", logo: "/logos/proguard.png" },
+];
+
+export const LANGUAGES = [
+  { name: "French", level: "fluent" },
+  { name: "English", level: "fluent" },
+  { name: "German", level: "a little" },
+];
+
+/** Where "all my certifications" points. Put your CV in /public/resume.pdf and set this to "/resume.pdf". */
+export const RESUME_URL = "https://www.linkedin.com/in/ikrame-8429bb1a8/";
