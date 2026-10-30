@@ -1098,3 +1098,55 @@ html.is-loading { overflow: hidden; }
   .oc-langs { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 760px) { .oc-detail { padding: 12px 14px; } .oc-detail strong { font-size: 1.1rem; } .oc-detail p { font-size: 0.76rem; } }
+
+/* ===================== credential solar system ===================== */
+.oc-stage { touch-action: pan-y; cursor: grab; user-select: none; height: clamp(460px, 56vw, 600px); max-width: 1100px;
+  background: radial-gradient(45% 45% at 50% 50%, rgba(255, 200, 120, 0.10), transparent 70%); }
+.oc-stage:active { cursor: grabbing; }
+.oc-ring { display: none; }
+.oc-canvas { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.oc-core, .oc-shield, .oc-halo { display: none; }
+
+/* the sun */
+.oc-sun { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; transform: translate(-50%, -50%); z-index: 120; pointer-events: none; transition: opacity 0.4s; }
+.oc-sun.is-dim { opacity: 0.55; }
+.sun-core {
+  position: absolute; inset: 18px; border-radius: 50%;
+  background: radial-gradient(circle at 42% 38%, #fffdf2 0%, #fff1c2 22%, #ffd36a 52%, #f59e2a 82%, #d9741a 100%);
+  box-shadow: 0 0 30px 8px rgba(255, 200, 100, 0.7), 0 0 80px 30px rgba(255, 170, 60, 0.35), inset -8px -10px 20px rgba(200, 90, 20, 0.45);
+  animation: sunBoil 6s ease-in-out infinite;
+}
+.sun-corona { position: absolute; inset: -60px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 210, 120, 0.35), rgba(255, 170, 60, 0.12) 35%, transparent 65%); animation: pulse 4s ease-in-out infinite; }
+.sun-rays {
+  position: absolute; inset: -34px; border-radius: 50%; opacity: 0.55;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 220, 150, 0.35) 0deg 3deg, transparent 3deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 38%, #000 48%, transparent 72%);
+          mask: radial-gradient(circle, transparent 38%, #000 48%, transparent 72%);
+  animation: ringSpin 50s linear infinite;
+}
+@keyframes sunBoil { 50% { filter: brightness(1.08) saturate(1.1); transform: scale(1.02); } }
+
+/* caption under the sun */
+.oc-caption { position: absolute; left: 50%; top: calc(50% + 74px); transform: translateX(-50%); z-index: 400; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; pointer-events: none; width: min(300px, 80%); }
+.oc-caption .oc-detail { margin-top: -6px; }
+
+/* planets */
+.oc-item { z-index: 100; }
+.oc-medal { width: 92px; height: 92px; }
+.oc-shade { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; mix-blend-mode: multiply; }
+.oc-medal::after { z-index: 2; background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.55), transparent 32%); }
+.oc-medal img, .oc-medal svg { position: relative; z-index: 0; }
+.oc-icon.code { stroke: #67e8f9; stroke-width: 6; }
+.oc-icon.code .slash { stroke: var(--term-green); }
+.oc-item .oc-name { margin-top: 2px; }
+
+@media (max-width: 760px) {
+  .oc-stage { height: 520px; }
+  .oc-sun { width: 92px; height: 92px; }
+  .oc-caption { top: calc(50% + 56px); }
+}
+/* caption sits at the bottom of the system, never on top of planets */
+.oc-stage { height: clamp(520px, 60vw, 660px); }
+.oc-caption { top: auto; bottom: 18px; }
+@media (max-width: 760px) { .oc-stage { height: 600px; } .oc-caption { top: auto; bottom: 12px; } }
+@media (max-width: 760px) { .oc-stage { height: 500px; } }

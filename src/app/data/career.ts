@@ -293,7 +293,7 @@ export type Credential = {
   status?: "progress";
   /** official logo file in /public/logos (svg or png). Missing file = elegant seal instead. */
   logo?: string;
-  icon?: "shield" | "radar";
+  icon?: "shield" | "radar" | "code";
 };
 
 export const CREDENTIALS: Credential[] = [
@@ -302,7 +302,7 @@ export const CREDENTIALS: Credential[] = [
   { id: "siem", name: "SIEM", kind: "skill", detail: "Log collection, correlation & detection · ELK, Grafana", icon: "radar" },
   { id: "oscp", name: "OSCP", kind: "cert", status: "progress", detail: "Offensive Security Certified Professional", logo: "/logos/oscp" },
   { id: "cisco", name: "Cisco", kind: "cert", detail: "Networking certification", logo: "/logos/cisco" },
-  { id: "jpmorgan", name: "J.P. Morgan", kind: "cert", detail: "Cybersecurity certification", logo: "/logos/jpmorgan" },
+  { id: "jpmorgan", name: "J.P. Morgan", kind: "cert", detail: "Software Engineering certification", icon: "code", logo: "/logos/jpmorgan" },
   { id: "microsoft", name: "Microsoft", kind: "company", detail: "Azure data-center operations · Paris", logo: "/logos/microsoft" },
   { id: "proguard", name: "ProGuard", kind: "company", detail: "Android app protection · Guardsquare, Leuven", logo: "/logos/proguard" },
 ];

@@ -4,92 +4,233 @@ import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
 
 /**
- * "Trust constellation": a glowing shield in the centre, credential medallions orbiting it on a
- * tilted 3D ring. Hover (or tap) a medallion to stop the orbit and read what it is.
+ * A little solar system of credentials: a glowing sun in the middle, each credential is a planet
+ * on its own tilted orbit (inner ones go faster), lit from the sun, passing behind it, with an
+ * asteroid belt. Drag (or swipe) to spin the whole system; hover / tap a planet to read it.
  */
+
+// orbit index for each credential (0 = closest to the sun)
+const ORBIT: Record<string, number> = { secnumedu: 0, siem: 0, comcyber: 1, cisco: 1, oscp: 2, microsoft: 2, jpmorgan: 3, proguard: 3 };
+const SIZE: Record<string, number> = { secnumedu: 92, comcyber: 90, siem: 70, oscp: 84, cisco: 76, microsoft: 88, jpmorgan: 80, proguard: 82 };
+const ORBIT_R = [0.4, 0.58, 0.77, 0.98]; // fraction of the max horizontal radius
+const BELT_R = 0.875;
+const TILT = 0.4; // vertical squash of the orbits (3D tilt)
+
+type Rock = { a: number; r: number; s: number; spin: number; rot: number; pts: number[]; shade: number };
+
 export default function CredentialOrbit() {
   const stageRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const itemsRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const shadesRef = useRef<(HTMLSpanElement | null)[]>([]);
   const [active, setActive] = useState<Credential | null>(null);
   const activeRef = useRef<Credential | null>(null);
   const hoverRef = useRef(false);
+  const dragRef = useRef({ down: false, x: 0, moved: false, vel: 0, offset: 0 });
 
   useEffect(() => {
     activeRef.current = active;
   }, [active]);
 
   useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
+    const stage = stageRef.current, canvas = canvasRef.current;
+    if (!stage || !canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0, angle = 0, last = performance.now(), visible = true;
-    const n = CREDENTIALS.length;
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: 0 });
+    let raf = 0, t = 0, last = performance.now(), visible = true, w = 0, h = 0;
+
+    // each planet starts at its own place on its orbit
+    const phase = CREDENTIALS.map((c, i) => {
+      const sameOrbit = CREDENTIALS.filter((d) => ORBIT[d.id] === ORBIT[c.id]);
+      return sameOrbit.indexOf(c) * Math.PI + ORBIT[c.id] * 0.9 + i * 0.05;
+    });
+    const rocks: Rock[] = Array.from({ length: 280 }, () => {
+      const n = 6 + Math.floor(Math.random() * 4);
+      return {
+        a: Math.random() * Math.PI * 2,
+        r: BELT_R + (Math.random() - 0.5) * 0.12,
+        s: 0.8 + Math.pow(Math.random(), 3) * 4.2,
+        spin: (Math.random() - 0.5) * 0.04,
+        rot: Math.random() * 6,
+        pts: Array.from({ length: n }, () => 0.65 + Math.random() * 0.45),
+        shade: 0.55 + Math.random() * 0.45,
+      };
+    });
+
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = stage.clientWidth;
+      h = stage.clientHeight;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      canvas.style.width = w + "px";
+      canvas.style.height = h + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
 
-    const place = () => {
-      const w = stage.clientWidth, h = stage.clientHeight;
-      const narrow = w < 600;
-      const rx = narrow ? w * 0.36 : Math.min(w * 0.42, 420), ry = narrow ? h * 0.36 : Math.min(h * 0.3, 150);
-      itemsRef.current.forEach((el, i) => {
-        if (!el) return;
-        const a = angle + (i / n) * Math.PI * 2;
-        const x = Math.cos(a) * rx, y = Math.sin(a) * ry;
-        const depth = (Math.sin(a) + 1) / 2; // 0 = back, 1 = front
-        const sc = 0.62 + depth * 0.48;
-        const isActive = activeRef.current?.id === CREDENTIALS[i].id;
-        el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${isActive ? sc * 1.12 : sc})`;
-        el.style.zIndex = String(Math.round(depth * 100) + (isActive ? 200 : 0));
-        el.style.opacity = String(0.45 + depth * 0.55);
-        el.style.filter = depth < 0.35 ? `blur(${(0.35 - depth) * 3}px)` : "none";
-      });
-    };
     const frame = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (visible && !reduced && !hoverRef.current && !activeRef.current) angle += dt * 0.22;
-      place();
+      const d = dragRef.current;
+      const paused = hoverRef.current || !!activeRef.current;
+      if (visible) {
+        if (!d.down) {
+          d.offset += d.vel;
+          d.vel *= 0.94;
+          if (!reduced && !paused) t += dt * 0.12;
+        }
+        draw();
+      }
       raf = requestAnimationFrame(frame);
     };
+
+    const draw = () => {
+      const cx = w / 2, cy = h / 2;
+      const narrow = w < 600;
+      const R = narrow ? w * 0.45 : Math.min(w * 0.47, 520);
+      const tilt = narrow ? 0.78 : TILT;
+      const spinAll = dragRef.current.offset;
+      ctx.clearRect(0, 0, w, h);
+
+      // orbit lines
+      ORBIT_R.forEach((f, i) => {
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, R * f, R * f * tilt, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(165, 243, 252, ${0.1 + i * 0.015})`;
+        ctx.lineWidth = 1;
+        ctx.setLineDash(i % 2 ? [3, 6] : []);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // asteroid belt (rocky, lit from the sun)
+      for (const k of rocks) {
+        const a = k.a + spinAll * 0.8 + t * 0.55;
+        const x = cx + Math.cos(a) * R * k.r, y = cy + Math.sin(a) * R * k.r * tilt;
+        const depth = (Math.sin(a) + 1) / 2;
+        const sz = k.s * (0.55 + depth * 0.7) * (narrow ? 0.8 : 1);
+        k.rot += k.spin;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(k.rot);
+        ctx.beginPath();
+        k.pts.forEach((p, j) => {
+          const aa = (j / k.pts.length) * Math.PI * 2;
+          const px = Math.cos(aa) * sz * p, py = Math.sin(aa) * sz * p;
+          if (j) ctx.lineTo(px, py); else ctx.moveTo(px, py);
+        });
+        ctx.closePath();
+        // light comes from the sun (centre)
+        const lx = (cx - x), ly = (cy - y);
+        const ll = Math.hypot(lx, ly) || 1;
+        const g = ctx.createLinearGradient(-lx / ll * sz, -ly / ll * sz, lx / ll * sz, ly / ll * sz);
+        const b = Math.round(70 + 60 * k.shade);
+        g.addColorStop(0, `rgb(${b * 0.45},${b * 0.42},${b * 0.48})`);
+        g.addColorStop(1, `rgb(${b + 40},${b + 22},${b - 4})`);
+        ctx.fillStyle = g;
+        ctx.globalAlpha = 0.45 + depth * 0.55;
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+
+      // planets (DOM medallions)
+      itemsRef.current.forEach((el, i) => {
+        if (!el) return;
+        const c = CREDENTIALS[i];
+        const o = ORBIT[c.id];
+        const speed = 1 / Math.pow(ORBIT_R[o], 1.5); // inner planets are faster (Kepler-ish)
+        const a = phase[i] + t * speed + spinAll;
+        const x = Math.cos(a) * R * ORBIT_R[o], y = Math.sin(a) * R * ORBIT_R[o] * tilt;
+        const depth = (Math.sin(a) + 1) / 2;
+        const base = (SIZE[c.id] ?? 80) / 92 * (narrow ? 0.6 : 0.88);
+        const isActive = activeRef.current?.id === c.id;
+        const sc = base * (0.62 + depth * 0.5) * (isActive ? 1.15 : 1);
+        el.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) scale(${sc})`;
+        el.style.zIndex = String((Math.sin(a) > 0 ? 200 : 50) + Math.round(depth * 40) + (isActive ? 100 : 0));
+        el.style.filter = depth < 0.3 ? `blur(${(0.3 - depth) * 2.5}px) brightness(${0.7 + depth})` : "none";
+        // day/night side facing the sun
+        const sh = shadesRef.current[i];
+        if (sh) {
+          const ang = Math.atan2(-y, -x) * (180 / Math.PI);
+          sh.style.background = `linear-gradient(${ang + 90}deg, rgba(255,240,200,0.35) 0%, rgba(255,240,200,0) 38%, rgba(4,8,20,0) 52%, rgba(4,8,20,0.62) 100%)`;
+        }
+      });
+    };
+
     raf = requestAnimationFrame(frame);
-    window.addEventListener("resize", place);
+    window.addEventListener("resize", resize);
     return () => {
       cancelAnimationFrame(raf);
       io.disconnect();
-      window.removeEventListener("resize", place);
+      window.removeEventListener("resize", resize);
     };
   }, []);
 
-  const shown = active;
+  // drag / swipe to spin
+  const onDown = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    d.down = true;
+    d.moved = false;
+    d.x = e.clientX;
+    d.vel = 0;
+  };
+  const onMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d.down) return;
+    const dx = e.clientX - d.x;
+    if (Math.abs(dx) > 3) {
+      d.moved = true;
+      setActive(null);
+    }
+    d.x = e.clientX;
+    const delta = dx * 0.006;
+    d.offset += delta;
+    d.vel = delta;
+  };
+  const onUp = () => {
+    dragRef.current.down = false;
+  };
 
   return (
     <div className="orbit-cred reveal">
       <div
         className="oc-stage"
         ref={stageRef}
-        onPointerEnter={(e) => { if (e.pointerType === "mouse") hoverRef.current = true; }}
-        onPointerLeave={() => { hoverRef.current = false; setActive(null); }}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        onPointerEnter={(e) => { if (e.pointerType === "mouse") hoverRef.current = false; }}
+        onPointerLeave={() => { onUp(); hoverRef.current = false; setActive(null); }}
       >
-        {/* tilted rings */}
-        <span className="oc-ring r1" aria-hidden="true" />
-        <span className="oc-ring r2" aria-hidden="true" />
+        <canvas ref={canvasRef} className="oc-canvas" aria-hidden="true" />
 
-        {/* centre: shield + identity, or the selected credential */}
-        <div className={`oc-core${shown ? " is-detail" : ""}`}>
-          <span className="oc-halo" aria-hidden="true" />
-          {shown ? (
-            <div className="oc-detail" key={shown.id}>
+        {/* the sun */}
+        <div className={`oc-sun${active ? " is-dim" : ""}`} aria-hidden="true">
+          <span className="sun-corona" />
+          <span className="sun-rays" />
+          <span className="sun-core" />
+        </div>
+
+        {/* label under the sun, or the selected planet's card */}
+        <div className="oc-caption">
+          {active ? (
+            <div className="oc-detail" key={active.id}>
               <span className="oc-kind mono">
-                {shown.status === "progress" ? "in progress" : shown.kind === "company" ? "worked with" : shown.kind === "mission" ? "field experience" : shown.kind === "skill" ? "expertise" : "certified"}
+                {active.status === "progress" ? "in progress" : active.kind === "company" ? "worked with" : active.kind === "mission" ? "field experience" : active.kind === "skill" ? "expertise" : "certified"}
               </span>
-              <strong>{shown.name}</strong>
-              <p>{shown.detail}</p>
+              <strong>{active.name}</strong>
+              <p>{active.detail}</p>
             </div>
           ) : (
             <>
-              <Shield />
               <span className="oc-title">security, <em>certified</em></span>
-              <span className="oc-sub mono">hover a medallion</span>
+              <span className="oc-sub mono">drag to spin · hover a planet</span>
             </>
           )}
         </div>
@@ -100,11 +241,15 @@ export default function CredentialOrbit() {
             type="button"
             ref={(el) => { itemsRef.current[i] = el; }}
             className={`oc-item${c.status === "progress" ? " is-wip" : ""}${active?.id === c.id ? " is-active" : ""} k-${c.kind}`}
-            onPointerEnter={(e) => { if (e.pointerType === "mouse") setActive(c); }}
-            onClick={() => setActive((a) => (a?.id === c.id ? null : c))}
+            onPointerEnter={(e) => { if (e.pointerType === "mouse" && !dragRef.current.down) { hoverRef.current = true; setActive(c); } }}
+            onPointerLeave={(e) => { if (e.pointerType === "mouse") { hoverRef.current = false; setActive(null); } }}
+            onClick={() => { if (!dragRef.current.moved) setActive((a) => (a?.id === c.id ? null : c)); }}
             aria-label={`${c.name}: ${c.detail}`}
           >
-            <Medallion c={c} />
+            <span className="oc-medal">
+              <Medallion c={c} />
+              <span className="oc-shade" ref={(el) => { shadesRef.current[i] = el; }} />
+            </span>
             <span className="oc-name">{c.name}</span>
           </button>
         ))}
@@ -132,25 +277,19 @@ export default function CredentialOrbit() {
   );
 }
 
-/** Official logo if the file exists (svg, then png), otherwise an elegant engraved seal. */
+/** Official logo if the file exists (svg, then png), otherwise an icon or an engraved seal. */
 function Medallion({ c }: { c: Credential }) {
   const [src, setSrc] = useState<string | null>(c.logo ? `${c.logo}.svg` : null);
   const onErr = () => {
     if (src && src.endsWith(".svg") && c.logo) setSrc(`${c.logo}.png`);
     else setSrc(null);
   };
-  return (
-    <span className="oc-medal">
-      {src ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" onError={onErr} />
-      ) : c.icon ? (
-        <Icon kind={c.icon} />
-      ) : (
-        <Seal c={c} />
-      )}
-    </span>
-  );
+  if (src) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" onError={onErr} draggable={false} />;
+  }
+  if (c.icon) return <Icon kind={c.icon} />;
+  return <Seal c={c} />;
 }
 
 function Seal({ c }: { c: Credential }) {
@@ -173,7 +312,7 @@ function Seal({ c }: { c: Credential }) {
   );
 }
 
-function Icon({ kind }: { kind: "shield" | "radar" }) {
+function Icon({ kind }: { kind: "shield" | "radar" | "code" }) {
   if (kind === "radar")
     return (
       <svg viewBox="0 0 100 100" className="oc-icon radar">
@@ -182,29 +321,18 @@ function Icon({ kind }: { kind: "shield" | "radar" }) {
         <circle cx="66" cy="38" r="3.5" className="blip" /><circle cx="38" cy="64" r="2.5" className="blip b2" />
       </svg>
     );
+  if (kind === "code")
+    return (
+      <svg viewBox="0 0 100 100" className="oc-icon code">
+        <path d="M36 32 L18 50 L36 68" />
+        <path d="M64 32 L82 50 L64 68" />
+        <path d="M56 26 L44 74" className="slash" />
+      </svg>
+    );
   return (
     <svg viewBox="0 0 100 100" className="oc-icon shield">
       <path d="M50 14 L80 26 V48 C80 68 66 80 50 87 C34 80 20 68 20 48 V26 Z" />
       <path d="M38 50 L47 59 L64 41" className="check" />
-    </svg>
-  );
-}
-
-function Shield() {
-  return (
-    <svg viewBox="0 0 120 120" className="oc-shield" aria-hidden="true">
-      <defs>
-        <linearGradient id="shg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#67e8f9" />
-          <stop offset="0.5" stopColor="#60a5fa" />
-          <stop offset="1" stopColor="#6ee7b7" />
-        </linearGradient>
-      </defs>
-      <path d="M60 10 L98 25 V56 C98 82 80 98 60 108 C40 98 22 82 22 56 V25 Z" className="sh-body" />
-      <path d="M60 22 L88 33 V56 C88 76 75 88 60 96 C45 88 32 76 32 56 V33 Z" className="sh-inner" />
-      <rect x="46" y="54" width="28" height="22" rx="4" className="sh-lock" />
-      <path d="M51 54 V47 a9 9 0 0 1 18 0 V54" className="sh-shackle" />
-      <circle cx="60" cy="64" r="3" className="sh-key" />
     </svg>
   );
 }
