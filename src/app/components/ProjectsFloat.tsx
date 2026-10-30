@@ -19,10 +19,6 @@ const COVERS = [
  * Projects as floating cards on a reflective floor. Scroll (or drag) sideways: the card in the
  * middle faces you, the others turn away in perspective.
  */
-const coverWord = (t: string) => {
-  const w = t.split(" ")[0];
-  return w.length > 10 ? w.split(/(?=[A-Z][a-z])/)[0] : w;
-};
 
 export default function ProjectsFloat({ projects }: { projects: Project[] }) {
   // a flat, readable slider: swipe / drag / arrows, every card faces you
@@ -91,24 +87,21 @@ export default function ProjectsFloat({ projects }: { projects: Project[] }) {
         {projects.map((p, i) => {
           const c = COVERS[i % COVERS.length];
           return (
-            <a key={p.title} href={p.href} target="_blank" rel="noreferrer" className="slide-card" draggable={false}>
-              <div className="float-inner">
-                <div className="float-cover" style={{ background: `radial-gradient(120% 90% at 20% 10%, ${c[1]}66, transparent 60%), radial-gradient(90% 80% at 90% 100%, ${c[2]}55, transparent 60%), ${c[0]}` }}>
-                  <span className="float-num">{String(i + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</span>
-                  <span className="float-big">{coverWord(p.title)}</span>
+            <a key={p.title} href={p.href} target="_blank" rel="noreferrer" className="slide-card pc" draggable={false} style={{ ["--c1" as string]: c[1], ["--c2" as string]: c[2] } as React.CSSProperties}>
+              <span className="pc-glow" aria-hidden="true" />
+              <div className="pc-top">
+                <span className="pc-num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="pc-path">~/{p.href.split("/").pop()}</span>
+              </div>
+              <h3 className="pc-title">{p.title}</h3>
+              <p className="pc-desc">{p.desc}</p>
+              <div className="pc-foot">
+                <div className="chips">
+                  {p.tags.map((t) => (
+                    <span key={t} className="chip">{t}</span>
+                  ))}
                 </div>
-                <div className="float-body">
-                  <div className="float-title">
-                    <h3>{p.title}</h3>
-                    <ArrowUpRight />
-                  </div>
-                  <p>{p.desc}</p>
-                  <div className="chips">
-                    {p.tags.map((t) => (
-                      <span key={t} className="chip">{t}</span>
-                    ))}
-                  </div>
-                </div>
+                <span className="pc-open">view code <ArrowUpRight /></span>
               </div>
             </a>
           );
