@@ -130,9 +130,6 @@ export default function Home() {
           <p className={`hero-text${typed ? " is-in" : ""}`}>
             <b>Fascinated</b> by tech and clean user experiences.
           </p>
-          <p className={`hero-status mono${typed ? " is-in" : ""}`}>
-            <span className="hs-dot" /> ANSSI-certified engineer · SIEM · crisis simulations · OSCP in progress<span className="hs-caret" />
-          </p>
           <div className={`hero-cta${typed ? " is-in" : ""}`}>
             <a href={`mailto:${EMAIL}`} className="btn btn-ghost"><Mail /> Say hi!</a>
             <a href={GITHUB} target="_blank" rel="noreferrer" className="btn btn-ghost"><Github /> GitHub</a>
