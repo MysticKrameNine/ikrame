@@ -3,56 +3,25 @@
 import { useEffect } from "react";
 
 /**
- * Soft, inertial wheel scrolling + smooth anchor jumps + reveal-on-scroll + progress bar.
- * Touch devices and reduced-motion users keep native scrolling.
- * Add `data-native-scroll` to any element that should receive raw wheel events.
+ * Smooth anchor jumps + reveal-on-scroll + progress bar.
+ * Wheel and touch scrolling stay native: the browser's own scrolling runs off the main thread and is always the smoothest.
  */
 export default function SmoothScroll() {
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const fine = window.matchMedia("(pointer: fine)").matches;
     const root = document.documentElement;
     const bar = document.querySelector<HTMLElement>(".scroll-progress span");
 
-    let target = window.scrollY;
-    let current = window.scrollY;
-    let animating = false;
-    let raf = 0;
-
+    let ticking = false;
     const max = () => root.scrollHeight - window.innerHeight;
     const updateBar = () => {
+      ticking = false;
       if (bar) bar.style.transform = `scaleX(${max() > 0 ? window.scrollY / max() : 0})`;
     };
+    const animateTo = (y: number) => window.scrollTo({ top: Math.max(0, y), behavior: reduced ? "auto" : "smooth" });
 
-    const step = () => {
-      current += (target - current) * 0.1;
-      if (Math.abs(target - current) < 0.5) {
-        current = target;
-        animating = false;
-      }
-      window.scrollTo(0, current);
-      if (animating) raf = requestAnimationFrame(step);
-    };
-    const animateTo = (y: number) => {
-      target = Math.max(0, Math.min(max(), y));
-      if (!animating) {
-        current = window.scrollY;
-        animating = true;
-        raf = requestAnimationFrame(step);
-      }
-    };
-
-    const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || root.classList.contains("game-open") || root.classList.contains("lightbox-open")) return;
-      const el = e.target as HTMLElement | null;
-      if (el?.closest("[data-native-scroll]")) return;
-      e.preventDefault();
-      const unit = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? window.innerHeight : 1;
-      animateTo((animating ? target : window.scrollY) + e.deltaY * unit);
-    };
     const onScroll = () => {
-      if (!animating) target = current = window.scrollY;
-      updateBar();
+      if (!ticking) { ticking = true; requestAnimationFrame(updateBar); }
     };
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
@@ -62,22 +31,14 @@ export default function SmoothScroll() {
       if (!el && id !== "home") return;
       e.preventDefault();
       const y = el ? el.getBoundingClientRect().top + window.scrollY - 72 : 0;
-      if (reduced) window.scrollTo(0, y);
-      else if (fine) animateTo(y);
-      else window.scrollTo({ top: y, behavior: "smooth" });
+      animateTo(y);
       history.replaceState(null, "", `#${id}`);
     };
     // other components (e.g. career mode) can ask for a smooth jump
     const onScrollTo = (e: Event) => {
-      const y = (e as CustomEvent<number>).detail;
-      if (fine && !reduced) animateTo(y);
-      else window.scrollTo({ top: y, behavior: reduced ? "auto" : "smooth" });
+      animateTo((e as CustomEvent<number>).detail);
     };
 
-    if (fine && !reduced) {
-      root.classList.add("smooth-wheel");
-      window.addEventListener("wheel", onWheel, { passive: false });
-    }
     window.addEventListener("scroll", onScroll, { passive: true });
     document.addEventListener("click", onClick);
     window.addEventListener("ik:scrollto", onScrollTo);
@@ -98,9 +59,6 @@ export default function SmoothScroll() {
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
 
     return () => {
-      cancelAnimationFrame(raf);
-      root.classList.remove("smooth-wheel");
-      window.removeEventListener("wheel", onWheel);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("click", onClick);
       window.removeEventListener("ik:scrollto", onScrollTo);

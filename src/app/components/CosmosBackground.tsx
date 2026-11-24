@@ -9,7 +9,7 @@ import { useEffect, useRef } from "react";
  * The painted sky sits on its own canvas and drifts very slowly with the scroll (parallax).
  */
 
-type Star = { x: number; y: number; r: number; depth: number; tw: number; sp: number; color: string; spikes: boolean };
+type Star = { x: number; y: number; r: number; depth: number; tw: number; sp: number; color: string; spikes: boolean; sprite: HTMLCanvasElement | null };
 type Shooting = { x: number; y: number; vx: number; vy: number; life: number };
 
 // ---------- tiny seeded value noise + fbm ----------
@@ -248,8 +248,11 @@ export default function CosmosBackground() {
     };
     const ease = (x: number) => x * x * (3 - 2 * x);
     let earthK = 0;
+    let docH = document.documentElement.scrollHeight;
+    const ro = new ResizeObserver(() => { docH = document.documentElement.scrollHeight; });
+    ro.observe(document.body);
     const drawEarth = () => {
-      const max = Math.max(1, document.documentElement.scrollHeight - h);
+      const max = Math.max(1, docH - h);
       const p = Math.min(1, Math.max(0, window.scrollY / max));
       const k = ease(Math.min(1, Math.max(0, (p - 0.36) / 0.64)));
       earthK = k;
@@ -353,8 +356,38 @@ export default function CosmosBackground() {
           sp: 0.3 + Math.random() * 1.2,
           color: STAR_COLORS[Math.floor(Math.random() * STAR_COLORS.length)],
           spikes: roll < 0.12,
+          sprite: null as HTMLCanvasElement | null,
         };
       });
+      // pre-render each star once (halo + core + spikes); the frame loop only blits it
+      for (const s of stars) {
+        const L = s.spikes ? s.r * 9 : s.r * 5;
+        const S = Math.ceil(L * 2 + 4);
+        const c = document.createElement("canvas");
+        c.width = c.height = Math.ceil(S * dpr);
+        const g = c.getContext("2d")!;
+        g.scale(dpr, dpr);
+        const m = S / 2;
+        const halo = g.createRadialGradient(m, m, 0, m, m, s.r * 5);
+        halo.addColorStop(0, s.color);
+        halo.addColorStop(1, "rgba(0,0,0,0)");
+        g.globalAlpha = 0.35;
+        g.fillStyle = halo;
+        g.beginPath(); g.arc(m, m, s.r * 5, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+        g.fillStyle = "#ffffff";
+        g.beginPath(); g.arc(m, m, s.r * 0.7, 0, Math.PI * 2); g.fill();
+        if (s.spikes) {
+          g.globalAlpha = 0.5;
+          const gh = g.createLinearGradient(m - L, m, m + L, m);
+          gh.addColorStop(0, "rgba(255,255,255,0)"); gh.addColorStop(0.5, s.color); gh.addColorStop(1, "rgba(255,255,255,0)");
+          g.fillStyle = gh; g.fillRect(m - L, m - 0.5, L * 2, 1);
+          const gv = g.createLinearGradient(m, m - L, m, m + L);
+          gv.addColorStop(0, "rgba(255,255,255,0)"); gv.addColorStop(0.5, s.color); gv.addColorStop(1, "rgba(255,255,255,0)");
+          g.fillStyle = gv; g.fillRect(m - 0.5, m - L, 1, L * 2);
+        }
+        s.sprite = c;
+      }
       if (big) {
         window.clearTimeout(paintTimer);
         paintTimer = window.setTimeout(paint, 120);
@@ -368,7 +401,14 @@ export default function CosmosBackground() {
       if (skyCanvas.classList.contains("is-ready")) skyCanvas.style.opacity = String(1 - 0.4 * earthK);
     };
 
+    let lastSy = -1;
     const frame = (now: number) => {
+      const syNow = window.scrollY;
+      if (!reduced && syNow === lastSy && now - last < 32 && shooting.length === 0) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      lastSy = syNow;
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       t += dt;
@@ -378,36 +418,10 @@ export default function CosmosBackground() {
         let y = (s.y - sy * s.depth) % h;
         if (y < 0) y += h;
         const a = reduced ? 0.8 : 0.45 + 0.55 * Math.abs(Math.sin(t * s.sp * 0.6 + s.tw));
-        // soft halo
-        const halo = ctx.createRadialGradient(s.x, y, 0, s.x, y, s.r * 5);
-        halo.addColorStop(0, s.color);
-        halo.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.globalAlpha = a * 0.35;
-        ctx.fillStyle = halo;
-        ctx.beginPath();
-        ctx.arc(s.x, y, s.r * 5, 0, Math.PI * 2);
-        ctx.fill();
+        if (!s.sprite) continue;
+        const S = s.sprite.width / dpr;
         ctx.globalAlpha = a;
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(s.x, y, s.r * 0.7, 0, Math.PI * 2);
-        ctx.fill();
-        if (s.spikes) {
-          const L = s.r * 9 * (0.7 + 0.3 * a);
-          ctx.globalAlpha = a * 0.5;
-          const gh = ctx.createLinearGradient(s.x - L, y, s.x + L, y);
-          gh.addColorStop(0, "rgba(255,255,255,0)");
-          gh.addColorStop(0.5, s.color);
-          gh.addColorStop(1, "rgba(255,255,255,0)");
-          ctx.fillStyle = gh;
-          ctx.fillRect(s.x - L, y - 0.5, L * 2, 1);
-          const gv = ctx.createLinearGradient(s.x, y - L, s.x, y + L);
-          gv.addColorStop(0, "rgba(255,255,255,0)");
-          gv.addColorStop(0.5, s.color);
-          gv.addColorStop(1, "rgba(255,255,255,0)");
-          ctx.fillStyle = gv;
-          ctx.fillRect(s.x - 0.5, y - L, 1, L * 2);
-        }
+        ctx.drawImage(s.sprite, s.x - S / 2, y - S / 2, S, S);
       }
       ctx.globalAlpha = 1;
       drawEarth();
@@ -462,6 +476,7 @@ export default function CosmosBackground() {
 
     return () => {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       window.clearTimeout(paintTimer);
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { CREDENTIALS, LANGUAGES, RESUME_URL, type Credential } from "../data/career";
 
 /**
- * A little solar system of credentials: a small, realistic sun in the middle, each credential is a planet
+ * A little solar system of credentials: a glowing sun in the middle, each credential is a planet
  * on its own tilted orbit (inner ones go faster), lit from the sun, passing behind it, with an
  * asteroid belt. Drag (or swipe) to spin the whole system; hover / tap a planet to read it.
  */
@@ -70,10 +70,10 @@ export default function CredentialOrbit() {
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // star canvas: room for the glow and flares
-      const hr = w < 600 ? 13 : 19;
+      // black hole canvas: wide enough for the accretion disc
+      const hr = w < 600 ? 24 : 34;
       holeR = hr;
-      HW = HH = Math.round(hr * 7);
+      HW = Math.round(hr * 8.4); HH = Math.round(hr * 5);
       gcan.width = HW * dpr;
       gcan.height = HH * dpr;
       gcan.style.width = HW + "px";
@@ -83,66 +83,78 @@ export default function CredentialOrbit() {
     let holeR = 32, HW = 270, HH = 160;
     resize();
 
-    // a small, realistic sun: granulated photosphere, limb darkening, a faint warm corona
-    const gran = document.createElement("canvas");
-    const GS = 128;
-    gran.width = gran.height = GS;
-    {
-      const g = gran.getContext("2d")!;
-      const img = g.createImageData(GS, GS);
-      // a few octaves of cheap value noise -> convection cells
-      const rnd = (x: number, y: number) => { const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return n - Math.floor(n); };
-      const smooth = (x: number, y: number) => {
-        const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
-        const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-        const a = rnd(xi, yi), b2 = rnd(xi + 1, yi), c = rnd(xi, yi + 1), d = rnd(xi + 1, yi + 1);
-        return a + (b2 - a) * u + (c - a) * v + (a - b2 - c + d) * u * v;
-      };
-      for (let y = 0; y < GS; y++)
-        for (let x = 0; x < GS; x++) {
-          const n = smooth(x / 4, y / 4) * 0.6 + smooth(x / 2, y / 2) * 0.3 + smooth(x, y) * 0.1;
-          const k = (y * GS + x) * 4;
-          const v = Math.round(n * 255);
-          img.data[k] = 255; img.data[k + 1] = 200 + Math.round(n * 55); img.data[k + 2] = 120 + Math.round(n * 80);
-          img.data[k + 3] = Math.round(40 + (1 - n) * 70) * (v > 0 ? 1 : 1);
-        }
-      g.putImageData(img, 0, 0);
-    }
-    let st = 0;
+    // the black hole: lensed photon ring, event horizon, swirling accretion disc (Doppler-bright on one side)
+    const motes = Array.from({ length: 640 }, () => ({
+      r: 1.45 + Math.pow(Math.random(), 1.6) * 2.6,
+      a: Math.random() * Math.PI * 2,
+      s: 0.5 + Math.random() * 1.3,
+      b: 0.35 + Math.random() * 0.65,
+    }));
+    const SQ = 0.24; // how flat we see the disc
+    const discBand = (front: boolean) => {
+      const R = holeR, cx = HW / 2, cy = HH / 2;
+      gtx.save();
+      gtx.beginPath();
+      if (front) gtx.rect(0, cy, HW, HH); else gtx.rect(0, 0, HW, cy);
+      gtx.clip();
+      // smooth glow of the disc
+      gtx.save();
+      gtx.translate(cx, cy); gtx.scale(1, SQ);
+      const g = gtx.createRadialGradient(0, 0, R * 1.25, 0, 0, R * 4.1);
+      g.addColorStop(0, "rgba(255,255,255,0)");
+      g.addColorStop(0.06, "rgba(255,246,225,0.85)");
+      g.addColorStop(0.22, "rgba(253,214,140,0.55)");
+      g.addColorStop(0.5, "rgba(103,232,249,0.22)");
+      g.addColorStop(1, "rgba(59,130,246,0)");
+      gtx.fillStyle = g;
+      gtx.beginPath(); gtx.arc(0, 0, R * 4.1, 0, Math.PI * 2); gtx.fill();
+      gtx.restore();
+      // swirling streaks
+      gtx.globalCompositeOperation = "lighter";
+      for (const m of motes) {
+        const sinA = Math.sin(m.a);
+        if (front ? sinA < 0 : sinA >= 0) continue;
+                const dop = 0.45 + 0.55 * (0.5 - 0.5 * Math.cos(m.a)); // left side (coming at us) brighter
+        const heat = Math.max(0, 1 - (m.r - 1.45) / 2.6);
+        gtx.globalAlpha = m.b * dop * (0.22 + heat * 0.5);
+        gtx.strokeStyle = heat > 0.55 ? "#fff3d6" : heat > 0.25 ? "#fcd34d" : "#67e8f9";
+        gtx.lineWidth = 0.4 + heat * 0.7;
+        const len = 0.12 + heat * 0.22;
+        gtx.beginPath();
+        gtx.ellipse(cx, cy, m.r * R, m.r * R * SQ, 0, m.a - len, m.a);
+        gtx.stroke();
+      }
+      gtx.globalAlpha = 1;
+      gtx.globalCompositeOperation = "source-over";
+      gtx.restore();
+    };
     const drawGlobe = (dt: number) => {
       const R = holeR, cx = HW / 2, cy = HH / 2;
-      st += dt;
       gtx.clearRect(0, 0, HW, HH);
-      // faint corona
-      const cor = gtx.createRadialGradient(cx, cy, R * 0.9, cx, cy, R * 2.6);
-      cor.addColorStop(0, "rgba(255,214,150,0.32)");
-      cor.addColorStop(0.35, "rgba(255,190,110,0.10)");
-      cor.addColorStop(1, "rgba(255,190,110,0)");
-      gtx.fillStyle = cor;
-      gtx.beginPath(); gtx.arc(cx, cy, R * 2.6, 0, Math.PI * 2); gtx.fill();
-      // photosphere
-      const body = gtx.createRadialGradient(cx, cy, 0, cx, cy, R);
-      body.addColorStop(0, "#fffaf0");
-      body.addColorStop(0.55, "#ffe6b0");
-      body.addColorStop(0.85, "#ffc266");
-      body.addColorStop(1, "#f29a38");
-      gtx.fillStyle = body;
+      for (const m of motes) m.a += (dt * m.s * 1.6) / Math.pow(m.r, 1.5);
+      // far side of the disc
+      discBand(false);
+      // the far side bent over the top and under the bottom (gravitational lensing)
+      const lens = gtx.createRadialGradient(cx, cy, R * 1.0, cx, cy, R * 1.75);
+      lens.addColorStop(0, "rgba(255,248,230,0.95)");
+      lens.addColorStop(0.18, "rgba(253,214,140,0.55)");
+      lens.addColorStop(0.5, "rgba(103,232,249,0.18)");
+      lens.addColorStop(1, "rgba(103,232,249,0)");
+      gtx.fillStyle = lens;
+      gtx.beginPath(); gtx.ellipse(cx, cy, R * 1.75, R * 1.62, 0, 0, Math.PI * 2); gtx.fill();
+      // event horizon
+      gtx.fillStyle = "#010208";
       gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
-      // granulation, drifting very slowly with the sun's rotation
-      gtx.save();
-      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.clip();
-      gtx.globalCompositeOperation = "multiply";
-      gtx.globalAlpha = 0.55;
-      gtx.translate(cx, cy); gtx.rotate(st * 0.02);
-      gtx.drawImage(gran, -R * 1.5, -R * 1.5, R * 3, R * 3);
-      gtx.restore();
-      // limb darkening: the edge of a real star is dimmer and redder
-      const limb = gtx.createRadialGradient(cx, cy, R * 0.45, cx, cy, R);
-      limb.addColorStop(0, "rgba(180,70,10,0)");
-      limb.addColorStop(0.8, "rgba(180,70,10,0.18)");
-      limb.addColorStop(1, "rgba(150,50,5,0.5)");
-      gtx.fillStyle = limb;
-      gtx.beginPath(); gtx.arc(cx, cy, R, 0, Math.PI * 2); gtx.fill();
+      // photon ring, flickering a little
+      const flick = 0.75 + Math.sin(t * 9) * 0.08 + Math.sin(t * 23) * 0.05;
+      gtx.strokeStyle = `rgba(255,244,214,${flick})`;
+      gtx.lineWidth = 1.4;
+      gtx.shadowColor = "rgba(253,214,140,0.9)";
+      gtx.shadowBlur = 10;
+      gtx.beginPath(); gtx.arc(cx, cy, R * 1.04, 0, Math.PI * 2); gtx.stroke();
+      gtx.shadowBlur = 0;
+      // near side of the disc, crossing in front of the hole
+      discBand(true);
     };
     const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; });
     io.observe(stage);
