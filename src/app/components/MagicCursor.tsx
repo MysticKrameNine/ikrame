@@ -3,15 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * The original wand cursor (ribbon + golden glitter + glowing star tip), same look as before,
+ * The original wand cursor (golden glitter + glowing star tip), same look as before,
  * but animated by writing transforms straight to the DOM instead of re-rendering React every frame.
  * The loop only runs while the mouse moves or glitter is still falling, so an idle page costs nothing.
  */
 const MAX_PARTICLES = 120;
-const CHAIN_LEN = 22;
-const SEG_DIST = 10;
-const SPRING = 0.28;
-const DAMP = 0.85;
 const FIXED_ANGLE_DEG = -22;
 const TIP_OFFSET_LOCAL = { x: 0, y: -24 };
 const OFFSET_X = -4;
@@ -38,17 +34,6 @@ export default function MagicCursor() {
     const ang = (FIXED_ANGLE_DEG * Math.PI) / 180;
     const tipDx = TIP_OFFSET_LOCAL.x * Math.cos(ang) - TIP_OFFSET_LOCAL.y * Math.sin(ang);
     const tipDy = TIP_OFFSET_LOCAL.x * Math.sin(ang) + TIP_OFFSET_LOCAL.y * Math.cos(ang);
-
-    // ribbon links
-    const chain = Array.from({ length: CHAIN_LEN }, (_, i) => {
-      const el = document.createElement("span");
-      const t = 1 - i / CHAIN_LEN;
-      const size = 9 * Math.pow(t, 0.9) + 1;
-      const hue = 46 + 60 * (1 - t);
-      el.style.cssText = `position:fixed;left:0;top:0;width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;opacity:${0.1 + 0.55 * t};border-radius:50%;pointer-events:none;z-index:9997;filter:blur(.5px);will-change:transform;background:radial-gradient(circle, hsl(${hue} 90% 70%) 0%, hsla(${hue} 90% 60% / .8) 40%, transparent 70%);transform:translate3d(-100px,-100px,0)`;
-      layer.appendChild(el);
-      return { el, x: -100, y: -100, vx: 0, vy: 0 };
-    });
 
     // glitter pool
     const pool = Array.from({ length: MAX_PARTICLES }, () => {
@@ -84,22 +69,6 @@ export default function MagicCursor() {
       py += (my - py) * (reduced ? 1 : 0.25);
       wand.style.transform = `translate3d(${px + OFFSET_X}px, ${py + OFFSET_Y}px, 0) translate(-50%, -50%) rotate(${FIXED_ANGLE_DEG}deg)`;
 
-      // ribbon
-      const head = chain[0];
-      head.vx = (px - head.x) * 0.55;
-      head.vy = (py - head.y) * 0.55;
-      head.x += head.vx; head.y += head.vy;
-      for (let i = 1; i < CHAIN_LEN; i++) {
-        const a = chain[i - 1], b = chain[i];
-        const dx = a.x - b.x, dy = a.y - b.y;
-        const dist = Math.hypot(dx, dy) || 1;
-        const diff = (dist - SEG_DIST) / dist;
-        b.vx = (b.vx + dx * diff * SPRING) * DAMP;
-        b.vy = (b.vy + dy * diff * SPRING) * DAMP;
-        b.x += b.vx; b.y += b.vy;
-      }
-      for (const c of chain) c.el.style.transform = `translate3d(${c.x}px, ${c.y}px, 0)`;
-
       // glitter
       let alive = 0;
       for (const p of pool) {
@@ -130,7 +99,6 @@ export default function MagicCursor() {
     return () => {
       window.removeEventListener("mousemove", onMove);
       cancelAnimationFrame(raf);
-      chain.forEach((c) => c.el.remove());
       pool.forEach((p) => p.el.remove());
     };
   }, [fine]);
