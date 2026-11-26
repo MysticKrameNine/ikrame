@@ -1,5 +1,6 @@
 "use client";
 
+import FooterTerm from "./components/FooterTerm";
 import { useEffect, useRef, useState } from "react";
 import CareerGlobe from "./components/CareerGlobe";
 import ArtGallery from "./components/ArtGallery";
@@ -331,6 +332,7 @@ export default function Home() {
       <footer className="footer">
         Built and designed by <span className="t-strong">Ikrame B</span>.<span className="dot">•</span>All rights reserved. ©{" "}
         {new Date().getFullYear()}
+        <FooterTerm />
       </footer>
     </main>
   );
