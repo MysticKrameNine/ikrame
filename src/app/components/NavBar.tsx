@@ -52,7 +52,7 @@ export default function NavBar() {
 
         <div className="nav-modes">
           <button type="button" className="icon-btn term-btn" aria-label="Open terminal" title="terminal (press `)" onClick={() => { setMenu(false); window.dispatchEvent(new Event("ik:term")); }}>
-            &gt;_
+            &gt;
           </button>
           <button type="button" className="mode-btn" onClick={() => { setMenu(false); window.dispatchEvent(new Event("ik:career")); }}>
             <Compass /> <span>Career mode</span>

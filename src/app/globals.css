@@ -1295,3 +1295,21 @@ html.term-open { overflow: hidden; }
 .footer-term { background: none; border: 0; padding: 0; margin-left: 0.6rem; font: inherit; font-family: var(--mono); font-size: 0.78rem; color: #475569; cursor: pointer; }
 .footer-term:hover { color: var(--term-green, #6ee7b7); }
 .footer-term kbd { font: inherit; border: 1px solid #1e293b; border-radius: 4px; padding: 0 5px; }
+
+/* terminal hint chip + blinking caret on the menu button */
+.term-hint { position: fixed; left: 20px; bottom: 20px; z-index: 60; display: inline-flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-radius: 12px; cursor: pointer; font-size: 0.76rem; color: #cbd5e1;
+  background: rgba(6, 12, 26, 0.88); border: 1px solid rgba(110, 231, 183, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 24px rgba(110, 231, 183, 0.08);
+  animation: hintIn 0.6s var(--ease) both; transition: border-color 0.25s, transform 0.25s var(--ease); }
+.term-hint:hover { border-color: var(--term-green); transform: translateY(-2px); }
+.term-hint-prompt { color: var(--term-green); font-weight: 600; }
+.term-hint-key kbd { font: inherit; color: #94a3b8; border: 1px solid #334155; border-radius: 4px; padding: 0 6px; }
+.term-hint-caret { width: 7px; height: 1em; background: var(--term-green); animation: tblink 1s steps(1) infinite; }
+@keyframes hintIn { from { opacity: 0; transform: translateY(12px); } }
+@media (pointer: coarse) { .term-hint-key { display: none; } }
+@media (max-width: 560px) { .term-hint { left: 12px; bottom: 12px; } }
+.term-btn::after { content: ""; display: inline-block; width: 0.5em; height: 2px; margin-left: 1px; background: var(--term-green); vertical-align: -2px; animation: tblink 1s steps(1) infinite; }
+.term-btn { color: #a7f3d0; }
+.term-btn { display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; }
+.term-btn::after { vertical-align: 0; align-self: flex-end; margin-bottom: 0.72em; }
