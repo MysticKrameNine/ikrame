@@ -7,6 +7,7 @@ import SmoothScroll from "./components/SmoothScroll";
 import GameMode from "./components/GameMode";
 import Preloader from "./components/Preloader";
 import Interactions from "./components/Interactions";
+import HiddenTerminal from "./components/HiddenTerminal";
 
 export const metadata: Metadata = {
   title: "Ikrame B. · Infrastructure, security & software",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <GameMode />
         <MagicCursor />
         <Interactions />
+        <HiddenTerminal />
       </body>
     </html>
   );
